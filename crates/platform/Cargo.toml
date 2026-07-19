@@ -1,0 +1,16 @@
+[package]
+name = "aether-platform"
+version.workspace = true
+edition.workspace = true
+
+[features]
+timer-clock = []
+std = ["aether-core/std"]
+
+[dependencies]
+aether-time = { path = "../time" }
+aether-core = { path = "../core" }
+
+[target.'cfg(target_arch = "avr")'.dependencies]
+avr-device = { version = "0.5.4", features = ["atmega328p", "rt"] }
+arduino-hal = { git = "https://github.com/Rahix/avr-hal", features = ["arduino-nano"] }
