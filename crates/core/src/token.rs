@@ -1,6 +1,7 @@
+use core::ptr::NonNull;
+
 use crate::allocator::Allocator;
 use crate::guard::{Guard, GuardMut};
-use core::ptr::NonNull;
 
 #[cfg(feature = "std")]
 extern crate alloc;
@@ -64,15 +65,14 @@ where
 #[cfg(feature = "std")]
 impl<T: ?Sized, A> Token<T, A> for Box<T>
 where
-    A: Allocator<Token<T> = Self, RawToken<T> = NonNull<T>>,
+    A: Allocator<Token<T> = Self>,
 {
     #[inline]
     fn read<'a>(&self, alloc: &'a A) -> Result<impl Guard<T> + 'a, A::Error>
     where
         T: 'a,
     {
-        let raw = NonNull::from(&**self);
-        alloc.read(raw)
+        alloc.read(alloc.downgrade(self))
     }
 
     #[inline]
@@ -80,7 +80,6 @@ where
     where
         T: 'a,
     {
-        let raw = NonNull::from(&mut **self);
-        alloc.write(raw)
+        alloc.write(alloc.downgrade(self))
     }
 }

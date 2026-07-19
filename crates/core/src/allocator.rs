@@ -31,7 +31,7 @@ pub trait Allocator {
     unsafe fn cast<T: ?Sized, U>(&self, token: Self::RawToken<T>) -> Self::RawToken<U>;
 
     /// Downgrades an owned token to a raw copyable token.
-    fn downgrade<T: ?Sized>(&self, owned: Self::Token<T>) -> Self::RawToken<T>;
+    fn downgrade<T: ?Sized>(&self, owned: &Self::Token<T>) -> Self::RawToken<T>;
 
     /// Upgrades a raw token to an owned token.
     fn upgrade<T: ?Sized>(&self, token: Self::RawToken<T>) -> Result<Self::Token<T>, Self::Error>;
@@ -50,7 +50,7 @@ pub trait Allocator {
     {
         let layout = core::alloc::Layout::new::<T>();
         self.allocate_raw(layout).and_then(|raw_owned| {
-            let raw_token = self.downgrade(raw_owned);
+            let raw_token = self.downgrade(&raw_owned);
             let typed_token = unsafe { self.cast(raw_token) };
             self.upgrade(typed_token)
         })
@@ -63,7 +63,7 @@ pub trait Allocator {
         Self: Sized,
     {
         let owned_uninit = self.allocate_uninit::<T>()?;
-        let raw_uninit = self.downgrade(owned_uninit);
+        let raw_uninit = self.downgrade(&owned_uninit);
         unsafe {
             let ptr =
                 core::ptr::from_mut::<MaybeUninit<T>>(self.write_unchecked(raw_uninit)).cast::<T>();

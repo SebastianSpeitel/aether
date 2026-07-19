@@ -43,8 +43,8 @@ impl<A: GlobalAlloc> Allocator for Global<A> {
     }
 
     #[inline]
-    fn downgrade<T: ?Sized>(&self, mut owned: Self::Token<T>) -> Self::RawToken<T> {
-        NonNull::from_mut(owned.as_mut())
+    fn downgrade<T: ?Sized>(&self, owned: &Self::Token<T>) -> Self::RawToken<T> {
+        NonNull::from_ref(owned)
     }
 
     #[inline]

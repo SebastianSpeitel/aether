@@ -77,8 +77,8 @@ impl<const N: usize> Allocator for ArenaAllocator<N> {
     }
 
     #[inline]
-    fn downgrade<T: ?Sized>(&self, owned: Self::Token<T>) -> Self::RawToken<T> {
-        owned
+    fn downgrade<T: ?Sized>(&self, owned: &Self::Token<T>) -> Self::RawToken<T> {
+        *owned
     }
 
     #[inline]

@@ -25,16 +25,35 @@ Aether provides fundamental building blocks for specialized allocation strategie
 At its core, Aether models memory access with the `Allocator` trait:
 
 ```rust
-pub trait Allocator<T> {
-    type Token;
-    type RawToken;
+pub trait Allocator {
+    type Error: Error;
 
-    fn allocate(&self, value: T) -> Result<Self::Token, AllocError>;
-    fn deallocate(&self, token: Self::RawToken) -> Result<(), AllocError>;
-    
-    fn read<'a>(&'a self, token: Self::RawToken) -> Result<impl Guard<'a, T>, AllocError>;
-    fn write<'a>(&'a self, token: Self::RawToken) -> Result<impl GuardMut<'a, T>, AllocError>;
-    fn upgrade<'a>(&'a self, token: Self::RawToken) -> Result<Self::Token, AllocError>;
+    /// The low-level, copyable, lifetimeless raw pointer representation.
+    type RawToken<T: ?Sized>: Token<T, Self> + Copy;
+
+    /// The safe, owned, memory-managed smart pointer.
+    type Token<T: ?Sized>: Token<T, Self>;
+
+    /// Casts a raw token from one type to another.
+    unsafe fn cast<T: ?Sized, U>(&self, token: Self::RawToken<T>) -> Self::RawToken<U>;
+
+    /// Downgrades an owned token reference to a raw copyable token.
+    fn downgrade<T: ?Sized>(&self, owned: &Self::Token<T>) -> Self::RawToken<T>;
+
+    /// Upgrades a raw token to an owned token.
+    fn upgrade<T: ?Sized>(&self, token: Self::RawToken<T>) -> Result<Self::Token<T>, Self::Error>;
+
+    /// Safely acquires an immutable borrow guard to the token's memory.
+    fn read<'a, T: ?Sized + 'a>(
+        &'a self,
+        token: Self::RawToken<T>,
+    ) -> Result<impl Guard<T> + 'a, Self::Error>;
+
+    /// Safely acquires a mutable borrow guard to the token's memory.
+    fn write<'a, T: ?Sized + 'a>(
+        &'a self,
+        token: Self::RawToken<T>,
+    ) -> Result<impl GuardMut<T> + 'a, Self::Error>;
 }
 ```
 

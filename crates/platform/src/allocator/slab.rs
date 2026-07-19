@@ -153,8 +153,8 @@ impl<const BLOCK_SIZE: usize, const TOTAL_SIZE: usize> Allocator
     }
 
     #[inline]
-    fn downgrade<T: ?Sized>(&self, owned: Self::Token<T>) -> Self::RawToken<T> {
-        owned
+    fn downgrade<T: ?Sized>(&self, owned: &Self::Token<T>) -> Self::RawToken<T> {
+        *owned
     }
 
     #[inline]

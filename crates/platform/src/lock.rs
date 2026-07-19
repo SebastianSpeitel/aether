@@ -18,6 +18,7 @@ const fn has_atomic_read<T>() -> bool {
     }
 }
 
+/// Execution context token indicating the current interrupt priority ceiling.
 pub struct Token<'a, const P: Priority> {
     _marker: PhantomData<&'a mut ()>,
 }
@@ -41,12 +42,14 @@ impl<const P: Priority> Token<'_, P> {
     }
 }
 
+/// A priority-ceiling lock protecting a resource.
 pub struct Lock<T, const MAX: Priority> {
     data: UnsafeCell<T>,
 }
 
 unsafe impl<T: Send, const MAX: Priority> Sync for Lock<T, MAX> {}
 
+/// An active borrow guard representing exclusive access to a priority-locked resource.
 pub struct Guard<'a, T, const CURRENT: Priority, const MAX: Priority> {
     data: &'a mut T,
     sreg: u8,
