@@ -5,8 +5,6 @@ use crate::guard::{Guard, GuardMut};
 
 #[cfg(feature = "std")]
 extern crate alloc;
-#[cfg(feature = "std")]
-use alloc::boxed::Box;
 
 /// Extension trait providing pointer-like methods for Allocator tokens.
 #[allow(clippy::missing_errors_doc)]
@@ -61,9 +59,9 @@ where
     }
 }
 
-// Implement Token for Box when the Allocator uses Box as its Token and NonNull as its RawToken
+// Implement Token for Box when the Allocator uses Box as its Token
 #[cfg(feature = "std")]
-impl<T: ?Sized, A> Token<T, A> for Box<T>
+impl<T: ?Sized, A> Token<T, A> for alloc::boxed::Box<T>
 where
     A: Allocator<Token<T> = Self>,
 {
