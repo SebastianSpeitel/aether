@@ -17,7 +17,7 @@ where
     type Output = T::Output;
 
     #[inline]
-    fn poll(&mut self, kern: &mut K) -> Poll<Self::Output> {
+    fn poll(&mut self, kern: &K) -> Poll<Self::Output> {
         match self.task.poll(kern) {
             Poll::Ready(out) => {
                 self.task = (self.factory)();
@@ -77,7 +77,7 @@ where
     type Output = B;
 
     #[inline]
-    fn poll(&mut self, kern: &mut K) -> Poll<Self::Output> {
+    fn poll(&mut self, kern: &K) -> Poll<Self::Output> {
         match self.task.poll(kern) {
             Poll::Ready(out) => Poll::Ready((self.f)(out)),
             Poll::Pending => Poll::Pending,
@@ -95,7 +95,7 @@ impl<K: Kernel, T: Task<K>, C: Clock> Task<K> for Timeout<T, C> {
     type Output = Result<T::Output, ()>;
 
     #[inline]
-    fn poll(&mut self, kern: &mut K) -> Poll<Self::Output> {
+    fn poll(&mut self, kern: &K) -> Poll<Self::Output> {
         let now = Instant::<C>::now();
         if self.start_time.is_none() {
             self.start_time = Some(now);

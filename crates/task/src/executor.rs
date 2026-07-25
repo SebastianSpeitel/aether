@@ -23,14 +23,15 @@ impl<T: Task<TaskContext<C>>, C: Clock> Executor<T, C> {
     {
         loop {
             let now = Instant::<C>::now();
-            let mut cx = TaskContext::new(now + self.max_sleep);
+            let cx = TaskContext::new(now + self.max_sleep);
 
-            if let Poll::Ready(out) = self.task.poll(&mut cx) {
+            if let Poll::Ready(out) = self.task.poll(&cx) {
                 return out;
             }
 
-            if now.is_before(cx.earliest_wake) {
-                let diff = cx.earliest_wake.duration_since(now);
+            let earliest = cx.earliest_wake.get();
+            if now.is_before(earliest) {
+                let diff = earliest.duration_since(now);
                 sleep_fn(core::cmp::min(diff, self.max_sleep));
             }
         }
