@@ -8,4 +8,4 @@ default = ["std"]
 std = ["aether-time/std"]
 
 [dependencies]
-aether-time = { path = "../time" }
+aether-time = { path = "../time", default-features = false }

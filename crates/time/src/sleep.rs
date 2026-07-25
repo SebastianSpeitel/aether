@@ -55,3 +55,10 @@ mod sys {
         }
     }
 }
+
+#[cfg(all(not(feature = "std"), not(target_arch = "avr")))]
+mod sys {
+    use crate::{Clock, Duration};
+
+    pub fn sleep<C: Clock>(_dur: Duration<C>) {}
+}

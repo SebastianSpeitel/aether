@@ -8,8 +8,8 @@ timer-clock = []
 std = ["aether-core/std"]
 
 [dependencies]
-aether-time = { path = "../time" }
-aether-core = { path = "../core" }
+aether-time = { path = "../time", default-features = false }
+aether-core = { path = "../core", default-features = false }
 
 [target.'cfg(target_arch = "avr")'.dependencies]
 avr-device = { version = "0.5.4", features = ["atmega328p", "rt"] }
