@@ -4,7 +4,8 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-std = ["aether-time/std"]
+alloc = []
+std = ["alloc", "aether-time/std"]
 
 [dependencies]
 aether-time = { path = "../time", default-features = false }

@@ -5,7 +5,8 @@ edition.workspace = true
 
 [features]
 timer-clock = []
-std = ["aether-core/std"]
+alloc = ["aether-core/alloc"]
+std = ["alloc", "aether-core/std"]
 
 [dependencies]
 aether-time = { path = "../time", default-features = false }

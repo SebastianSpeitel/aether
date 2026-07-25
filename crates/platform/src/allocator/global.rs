@@ -1,3 +1,4 @@
+#![cfg(feature = "alloc")]
 extern crate alloc;
 use aether_core::allocator::Allocator;
 use aether_core::guard::{Guard, GuardMut};

@@ -3,6 +3,7 @@ use core::ptr::NonNull;
 use crate::allocator::Allocator;
 use crate::guard::{Guard, GuardMut};
 
+#[cfg(feature = "alloc")]
 extern crate alloc;
 
 /// Extension trait providing pointer-like methods for Allocator tokens.
@@ -59,6 +60,7 @@ where
 }
 
 // Implement Token for Box when the Allocator uses Box as its Token
+#[cfg(feature = "alloc")]
 impl<T: ?Sized, A> Token<T, A> for alloc::boxed::Box<T>
 where
     A: Allocator<Token<T> = Self>,
