@@ -7,11 +7,22 @@ edition.workspace = true
 timer-clock = []
 alloc = ["aether-core/alloc"]
 std = ["alloc", "aether-core/std"]
+embedded = ["dep:embedded-hal"]
+ufmt = ["dep:ufmt"]
 
 [dependencies]
 aether-time = { path = "../time", default-features = false }
 aether-core = { path = "../core", default-features = false }
+embedded-hal = { version = "1.0", optional = true }
+ufmt = { version = "0.2.0", optional = true }
 
 [target.'cfg(target_arch = "avr")'.dependencies]
 avr-device = { version = "0.5.4", features = ["atmega328p", "rt"] }
 arduino-hal = { git = "https://github.com/Rahix/avr-hal", features = ["arduino-nano"] }
+
+[dev-dependencies]
+embedded-hal = "1.0"
+
+[[example]]
+name = "embedded_button_led"
+required-features = ["embedded"]
