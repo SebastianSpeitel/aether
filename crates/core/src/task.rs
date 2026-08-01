@@ -60,8 +60,7 @@ impl<K: Kernel, C: Clock> Task<K> for Sleep<C> {
         let now = Instant::now();
         if now.is_before(self.end_time) {
             let diff = self.end_time.duration_since(now);
-            kernel.yield_for(diff);
-            Poll::Pending
+            kernel.yield_for(diff)
         } else {
             Poll::Ready(())
         }
