@@ -127,7 +127,7 @@ impl<'a, 'h, D: ReadDriver + ?Sized> std::io::Read for StdReadAdapter<'a, 'h, D>
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         self.driver
             .read(self.handle, buf)
-            .map_err(std::io::Error::other)
+            .map_err(|e| std::io::Error::other(std::format!("{e:?}")))
     }
 }
 
@@ -144,13 +144,13 @@ impl<'a, 'h, D: WriteDriver + ?Sized> std::io::Write for StdWriteAdapter<'a, 'h,
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         self.driver
             .write(self.handle, buf)
-            .map_err(std::io::Error::other)
+            .map_err(|e| std::io::Error::other(std::format!("{e:?}")))
     }
 
     #[inline]
     fn flush(&mut self) -> std::io::Result<()> {
         self.driver
             .flush(self.handle)
-            .map_err(std::io::Error::other)
+            .map_err(|e| std::io::Error::other(std::format!("{e:?}")))
     }
 }
