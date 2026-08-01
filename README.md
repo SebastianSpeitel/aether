@@ -1,60 +1,41 @@
 # Aether
 
-Aether is an experimental Rust project exploring custom memory allocators tailored for performance, thread safety, and token-based resource management.
+Aether is a high-performance, `#![no_std]` capability-based kernel, memory allocator, and hardware resource management architecture written in Rust. It scales from 8-bit microcontrollers (e.g. 2KB RAM AVR ATmega328P Arduino Nano) to multi-core host OS kernels.
 
-## Overview
+> For deep architectural details, design rules, and guidelines for AI agents, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
-Aether provides fundamental building blocks for specialized allocation strategies in contexts where `std::alloc::GlobalAlloc` might not be sufficient or where distinct memory regions are required. It introduces an `Allocator` trait that uses abstract `Token` types to track and validate memory regions safely.
+## Core Crates
 
-### Crates
+- **`aether-core`**: Defines the foundational abstractions:
+  - **`Allocator` & `Token`**: Abstract memory allocation with scoped `Guard` / `GuardMut` access and zero-overhead debug error handling.
+  - **`Driver` & Sub-Capabilities**: Resource management via safe owned handles and compile-time sub-capability traits (`ReadDriver`, `WriteDriver`, `PositionedReadDriver`, `PositionedWriteDriver`, `BlockDriver`, `IoctlDriver`, `CloneDriver`).
+  - **`Kernel` & `Task`**: Capability-driven task execution with ergonomic, compiler-checked `Poll<T>` yielding (`return kernel.r#yield();`).
+- **`aether-platform`**: Platform-specific allocators, drivers, and utilities:
+  - **`ArenaAllocator` & `SlabAllocator`**: Thread-safe, lock-free bump and fixed-block allocators.
+  - **`PinDriver<P>`**: Universal `embedded-hal` 1.0 GPIO pin wrapper (0-byte RAM ZST).
+  - **`progmem`**: AVR Flash memory utilities (`read_byte`, `PStr`, `ProgPtr`).
+- **`aether-compat`**: Compatibility layers bridging `aether::Task` to standard Rust `std::future::Future` and `WakerKernel`.
+- **`aether-time`**: Microsecond and cycle-accurate hardware clocks (`FrozenClock`, `Duration`, `Instant`).
 
-- **`aether-core`**: Defines the core abstractions, including the `Allocator` trait, `AllocError`, and the `Guard` / `GuardMut` traits for scoped access to memory.
-- **`aether-platform`**: Provides concrete implementations of the allocator abstractions:
-  - **`ArenaAllocator`**: A fast, thread-safe bump allocator. It uses atomic counters (`AtomicUsize`) for lock-free allocation from a contiguous block of memory. Ideal for short-lived, phase-based allocations.
-  - **`SlabAllocator`**: A thread-safe allocator for fixed-size blocks. Uses an atomic free list and a spinlock to manage contention, providing extremely fast allocation and deallocation of uniform types.
+## Features & Design Highlights
 
-## Features
+1. **Capability-Based OS Architecture**: Kernel passes capabilities to tasks using generic trait bounds (`HasAllocator<A>`, `HasDriver<D>`).
+2. **Zero-Overhead / Bare-Metal Safety**: Zero-Sized Types (ZSTs: `type Handle = ()`, `type OpenOptions = ()`) take **0 bytes of RAM** and inline directly to hardware register writes.
+3. **Safe by Default**: Driver handles automatically clean up on `Drop`, matching `std::fs::File` and `std::os::fd::OwnedFd`.
+4. **Compile-Time Sub-Capabilities**: Enforces valid operations at compile-time (e.g. attempting to seek a UART or write to a button fails at compile time).
+5. **Standard Library Adapters**: Bridge `ReadDriver` and `WriteDriver` handles directly to `std::io::Read` and `std::io::Write` using `std::io::Error::other`.
 
-- **Token-based Allocation**: Allocators return abstract tokens rather than raw pointers, which can then be validated and upgraded to references. This approach helps encapsulate the memory location and bounds.
-- **Thread Safety**: The provided `ArenaAllocator` and `SlabAllocator` are `Sync` and use atomics for safe concurrent access across threads.
-- **Fast Error Paths**: Uses `core::hint::cold_path()` to inform the compiler about unlikely error conditions, optimizing the instruction cache for the hot paths.
-- **Zero-Sized Errors**: `AllocError` is a zero-sized type (ZST) to ensure `Result<Token, AllocError>` takes no more space than a pointer.
+## Examples
 
-## Architecture
+Run any of the included workspace examples:
 
-At its core, Aether models memory access with the `Allocator` trait:
+```bash
+# Embedded PinDriver (Button + LED) ZST Example:
+cargo run -p aether-platform --example embedded_button_led --features embedded
 
-```rust
-pub trait Allocator {
-    type Error: Error;
+# Sub-Allocator Arena Example:
+cargo run --example sub_allocators
 
-    /// The low-level, copyable, lifetimeless raw pointer representation.
-    type RawToken<T: ?Sized>: Token<T, Self> + Copy;
-
-    /// The safe, owned, memory-managed smart pointer.
-    type Token<T: ?Sized>: Token<T, Self>;
-
-    /// Casts a raw token from one type to another.
-    unsafe fn cast<T: ?Sized, U>(&self, token: Self::RawToken<T>) -> Self::RawToken<U>;
-
-    /// Downgrades an owned token reference to a raw copyable token.
-    fn downgrade<T: ?Sized>(&self, owned: &Self::Token<T>) -> Self::RawToken<T>;
-
-    /// Upgrades a raw token to an owned token.
-    fn upgrade<T: ?Sized>(&self, token: Self::RawToken<T>) -> Result<Self::Token<T>, Self::Error>;
-
-    /// Safely acquires an immutable borrow guard to the token's memory.
-    fn read<'a, T: ?Sized + 'a>(
-        &'a self,
-        token: Self::RawToken<T>,
-    ) -> Result<impl Guard<T> + 'a, Self::Error>;
-
-    /// Safely acquires a mutable borrow guard to the token's memory.
-    fn write<'a, T: ?Sized + 'a>(
-        &'a self,
-        token: Self::RawToken<T>,
-    ) -> Result<impl GuardMut<T> + 'a, Self::Error>;
-}
+# Futures Compatibility Layer Example:
+cargo run -p aether-compat --example compat_futures
 ```
-
-This model separates allocation (getting a token), access (read/write guards), and deallocation. It allows allocators to enforce strict validation rules before allowing access to the underlying memory.
