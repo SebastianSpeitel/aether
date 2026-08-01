@@ -86,8 +86,8 @@ pub trait Allocator {
         let owned_uninit = self.allocate_uninit::<T>()?;
         let raw_uninit = self.downgrade(&owned_uninit);
         unsafe {
-            let ptr =
-                core::ptr::from_mut::<MaybeUninit<T>>(&mut *self.write_unchecked(raw_uninit)).cast::<T>();
+            let ptr = core::ptr::from_mut::<MaybeUninit<T>>(&mut *self.write_unchecked(raw_uninit))
+                .cast::<T>();
             ptr.write(value);
             let raw_init = self.cast::<MaybeUninit<T>, T>(raw_uninit);
             self.upgrade(raw_init)
@@ -165,8 +165,9 @@ pub trait Allocator {
         &'a self,
         token: Self::RawToken<T>,
     ) -> impl Guard<T> + 'a {
-        self.read_raw(token)
-            .unwrap_or_else(|err| self.handle_error(err, Some(format_args!("read_unchecked validation failed"))))
+        self.read_raw(token).unwrap_or_else(|err| {
+            self.handle_error(err, Some(format_args!("read_unchecked validation failed")))
+        })
     }
 
     /// Writes to the value without checking validity or lifetime.
@@ -182,8 +183,9 @@ pub trait Allocator {
         &'a self,
         token: Self::RawToken<T>,
     ) -> impl GuardMut<T> + 'a {
-        self.write_raw(token)
-            .unwrap_or_else(|err| self.handle_error(err, Some(format_args!("write_unchecked validation failed"))))
+        self.write_raw(token).unwrap_or_else(|err| {
+            self.handle_error(err, Some(format_args!("write_unchecked validation failed")))
+        })
     }
 }
 

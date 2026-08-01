@@ -235,7 +235,10 @@ impl<const BLOCK_SIZE: usize, const TOTAL_SIZE: usize> Allocator
     ) -> impl Guard<T> + 'a {
         #[cfg(debug_assertions)]
         if let Err(err) = self.validate(token) {
-            self.handle_error(err, Some(format_args!("read_unchecked called on invalid token")));
+            self.handle_error(
+                err,
+                Some(format_args!("read_unchecked called on invalid token")),
+            );
         }
         unsafe { token.as_ref() }
     }
@@ -247,7 +250,10 @@ impl<const BLOCK_SIZE: usize, const TOTAL_SIZE: usize> Allocator
     ) -> impl GuardMut<T> + 'a {
         #[cfg(debug_assertions)]
         if let Err(err) = self.validate(token) {
-            self.handle_error(err, Some(format_args!("write_unchecked called on invalid token")));
+            self.handle_error(
+                err,
+                Some(format_args!("write_unchecked called on invalid token")),
+            );
         }
         unsafe { &mut *token.as_ptr() }
     }

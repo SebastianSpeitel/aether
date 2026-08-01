@@ -23,14 +23,16 @@ pub struct TaskSubArena {
 }
 
 impl TaskSubArena {
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             buffer: UnsafeCell::new([0u8; 256]),
             offset: Cell::new(0),
         }
     }
 
-    pub fn used_bytes(&self) -> usize {
+    #[must_use]
+    pub const fn used_bytes(&self) -> usize {
         self.offset.get()
     }
 }
@@ -80,7 +82,8 @@ impl Allocator for TaskSubArena {
 
         self.offset.set(end);
         let ptr = unsafe { (slice_ptr.cast::<u8>()).add(aligned_offset) };
-        let raw_slice = core::ptr::slice_from_raw_parts_mut(ptr.cast::<MaybeUninit<u8>>(), layout.size());
+        let raw_slice =
+            core::ptr::slice_from_raw_parts_mut(ptr.cast::<MaybeUninit<u8>>(), layout.size());
 
         NonNull::new(raw_slice).ok_or(AllocError)
     }
@@ -153,9 +156,12 @@ impl Kernel for RealTimeKernel {
 }
 
 impl HasAllocator for RealTimeKernel {
-    type Alloc<'a> = &'a ArenaAllocator<1024> where Self: 'a;
+    type Alloc<'a>
+        = &'a ArenaAllocator<1024>
+    where
+        Self: 'a;
 
-    fn get_allocator<'a>(&'a self) -> Self::Alloc<'a> {
+    fn get_allocator(&self) -> Self::Alloc<'_> {
         &self.allocator
     }
 }
@@ -186,13 +192,17 @@ impl<K, Tok> Task<K> for PacketProcessingTask<Tok>
 where
     K: Kernel + HasAllocator,
     Tok: 'static,
-    for<'a> <K as HasAllocator>::Alloc<'a>: core::ops::Deref<Target: Allocator<Token<TaskSubArena> = Tok>>,
+    for<'a> <K as HasAllocator>::Alloc<'a>:
+        core::ops::Deref<Target: Allocator<Token<TaskSubArena> = Tok>>,
 {
     type Output = u32;
 
     fn poll(&mut self, kernel: &K) -> Poll<Self::Output> {
         self.step += 1;
-        println!("\n--- [Task] Polling PacketProcessingTask (Step {}) ---", self.step);
+        println!(
+            "\n--- [Task] Polling PacketProcessingTask (Step {}) ---",
+            self.step
+        );
 
         let kernel_alloc = kernel.get_allocator();
 
@@ -218,7 +228,9 @@ where
                     .write::<TaskSubArena, _>(sub_arena_token)
                     .expect("Failed to get GuardMut for SubAllocator");
 
-                println!("  [Task] SubAllocator GuardMut acquired! Using SubAllocator to allocate long-living payload...");
+                println!(
+                    "  [Task] SubAllocator GuardMut acquired! Using SubAllocator to allocate long-living payload..."
+                );
 
                 // 4. Use the acquired GuardMut (which derefs to TaskSubArena) to allocate long-living dynamic payload
                 let _payload_token = arena_guard

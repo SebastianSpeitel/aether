@@ -90,12 +90,7 @@ pub trait BlockDriver: Driver {
     ) -> Result<(), Self::Error>;
 
     /// Writes a sector to block index `lba` from `buf`.
-    fn write_sector(
-        &self,
-        handle: &Self::Handle,
-        lba: u64,
-        buf: &[u8],
-    ) -> Result<(), Self::Error>;
+    fn write_sector(&self, handle: &Self::Handle, lba: u64, buf: &[u8]) -> Result<(), Self::Error>;
 }
 
 /// Sub-capability trait for drivers supporting hardware control commands (Linux ioctl).

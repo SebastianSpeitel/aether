@@ -64,7 +64,7 @@ pub struct ButtonLedTask<LedDrv: Driver, BtnDrv: Driver> {
 }
 
 impl<LedDrv: Driver, BtnDrv: Driver> ButtonLedTask<LedDrv, BtnDrv> {
-    pub fn new(led_handle: LedDrv::Handle, btn_handle: BtnDrv::Handle) -> Self {
+    pub const fn new(led_handle: LedDrv::Handle, btn_handle: BtnDrv::Handle) -> Self {
         Self {
             led_handle,
             btn_handle,
@@ -99,11 +99,15 @@ where
                 println!("  [Task] Button Released! Writing LOW (0) to LED PinDriver...");
                 led_driver.write(&self.led_handle, &[0]).unwrap();
             }
-            self.last_btn_state = if pressed { 1 } else { 0 };
+            self.last_btn_state = u8::from(pressed);
         } else {
             println!(
                 "  [Task] Polled button state: {}",
-                if pressed { "HIGH (Pressed)" } else { "LOW (Idle)" }
+                if pressed {
+                    "HIGH (Pressed)"
+                } else {
+                    "LOW (Idle)"
+                }
             );
         }
 
@@ -132,15 +136,21 @@ impl Kernel for EmbeddedKernel {
 }
 
 impl HasDriver<PinDriver<MockLedPin>> for EmbeddedKernel {
-    type DriverRef<'b> = &'b PinDriver<MockLedPin> where Self: 'b;
-    fn get_driver<'b>(&'b self) -> &'b PinDriver<MockLedPin> {
+    type DriverRef<'b>
+        = &'b PinDriver<MockLedPin>
+    where
+        Self: 'b;
+    fn get_driver(&self) -> &PinDriver<MockLedPin> {
         &self.led_driver
     }
 }
 
 impl HasDriver<PinDriver<MockButtonPin>> for EmbeddedKernel {
-    type DriverRef<'b> = &'b PinDriver<MockButtonPin> where Self: 'b;
-    fn get_driver<'b>(&'b self) -> &'b PinDriver<MockButtonPin> {
+    type DriverRef<'b>
+        = &'b PinDriver<MockButtonPin>
+    where
+        Self: 'b;
+    fn get_driver(&self) -> &PinDriver<MockButtonPin> {
         &self.btn_driver
     }
 }
@@ -154,16 +164,22 @@ fn main() {
     assert_eq!(core::mem::size_of::<PinDriver<MockButtonPin>>(), 0);
     assert_eq!(core::mem::size_of::<PinDriver<MockLedPin>>(), 0);
     assert_eq!(core::mem::size_of::<EmbeddedKernel>(), 0);
-    println!("  [Memory Audit] Size of PinDriver<MockButtonPin>: {} bytes", core::mem::size_of::<PinDriver<MockButtonPin>>());
-    println!("  [Memory Audit] Size of EmbeddedKernel: {} bytes", core::mem::size_of::<EmbeddedKernel>());
+    println!(
+        "  [Memory Audit] Size of PinDriver<MockButtonPin>: {} bytes",
+        core::mem::size_of::<PinDriver<MockButtonPin>>()
+    );
+    println!(
+        "  [Memory Audit] Size of EmbeddedKernel: {} bytes",
+        core::mem::size_of::<EmbeddedKernel>()
+    );
 
     // Wrap zero-sized embedded-hal pins into aether PinDrivers
     let btn_driver = PinDriver::new(MockButtonPin);
     let led_driver = PinDriver::new(MockLedPin);
 
     // Open handles via Driver capability
-    let btn_handle = btn_driver.open(()).unwrap();
-    let led_handle = led_driver.open(()).unwrap();
+    btn_driver.open(()).unwrap();
+    led_driver.open(()).unwrap();
 
     let kernel = EmbeddedKernel {
         led_driver,
@@ -171,21 +187,42 @@ fn main() {
     };
 
     let mut task: ButtonLedTask<PinDriver<MockLedPin>, PinDriver<MockButtonPin>> =
-        ButtonLedTask::new(led_handle, btn_handle);
+        ButtonLedTask::new((), ());
 
     println!("\n--- Poll 1: Initial State (Button Idle) ---");
     let _ = task.poll(&kernel);
-    println!("  -> Physical LED hardware state: {}", if MOCK_LED_STATE.load(Ordering::Relaxed) { "ON" } else { "OFF" });
+    println!(
+        "  -> Physical LED hardware state: {}",
+        if MOCK_LED_STATE.load(Ordering::Relaxed) {
+            "ON"
+        } else {
+            "OFF"
+        }
+    );
 
     println!("\n--- Poll 2: User Presses Button ---");
     MOCK_BUTTON_STATE.store(true, Ordering::Relaxed);
     let _ = task.poll(&kernel);
-    println!("  -> Physical LED hardware state: {}", if MOCK_LED_STATE.load(Ordering::Relaxed) { "ON" } else { "OFF" });
+    println!(
+        "  -> Physical LED hardware state: {}",
+        if MOCK_LED_STATE.load(Ordering::Relaxed) {
+            "ON"
+        } else {
+            "OFF"
+        }
+    );
 
     println!("\n--- Poll 3: User Releases Button ---");
     MOCK_BUTTON_STATE.store(false, Ordering::Relaxed);
     let _ = task.poll(&kernel);
-    println!("  -> Physical LED hardware state: {}", if MOCK_LED_STATE.load(Ordering::Relaxed) { "ON" } else { "OFF" });
+    println!(
+        "  -> Physical LED hardware state: {}",
+        if MOCK_LED_STATE.load(Ordering::Relaxed) {
+            "ON"
+        } else {
+            "OFF"
+        }
+    );
 
     println!("\n=== Example Finished Successfully ===");
 }

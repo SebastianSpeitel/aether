@@ -56,9 +56,9 @@ impl Clock for SystemClock {
     }
 
     #[inline]
-    #[allow(clippy::cast_possible_wrap)]
     fn offset_from(lhs: Instant<Self>, rhs: Instant<Self>) -> SignedDuration<Self> {
-        SignedDuration::from_inner(lhs.into_inner().wrapping_sub(rhs.into_inner()) as i32)
+        let diff = lhs.into_inner().wrapping_sub(rhs.into_inner());
+        SignedDuration::from_inner(i32::from_ne_bytes(diff.to_ne_bytes()))
     }
 
     #[inline]

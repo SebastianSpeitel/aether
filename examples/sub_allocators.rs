@@ -23,14 +23,16 @@ pub struct TaskSubArena {
 }
 
 impl TaskSubArena {
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             buffer: UnsafeCell::new([0u8; 256]),
             offset: Cell::new(0),
         }
     }
 
-    pub fn used_bytes(&self) -> usize {
+    #[must_use]
+    pub const fn used_bytes(&self) -> usize {
         self.offset.get()
     }
 }
@@ -155,7 +157,7 @@ impl Kernel for RealTimeKernel {
 impl HasAllocator for RealTimeKernel {
     type Alloc<'a> = &'a ArenaAllocator<1024> where Self: 'a;
 
-    fn get_allocator<'a>(&'a self) -> Self::Alloc<'a> {
+    fn get_allocator(&self) -> Self::Alloc<'_> {
         &self.allocator
     }
 }

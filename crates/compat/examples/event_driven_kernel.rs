@@ -45,7 +45,10 @@ impl EventDrivenKernel {
 }
 
 impl aether_core::Kernel for EventDrivenKernel {
-    fn yield_for<C: aether_core::time::Clock, T>(&self, _dur: aether_core::time::Duration<C>) -> Poll<T> {
+    fn yield_for<C: aether_core::time::Clock, T>(
+        &self,
+        _dur: aether_core::time::Duration<C>,
+    ) -> Poll<T> {
         // When the waker fires, mark that we have an event
         self.wake_count.set(self.wake_count.get() + 1);
         self.has_pending_event.set(true);

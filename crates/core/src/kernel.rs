@@ -26,10 +26,14 @@ pub trait Kernel {
     }
 }
 
-#[allow(clippy::missing_errors_doc)]
+/// Interface for async event reactors (epoll, io_uring, interrupts).
 pub trait Reactor {
     type Error: Error;
     type Operation;
 
+    /// Submits an operation to the reactor queue.
+    ///
+    /// # Errors
+    /// Returns `Self::Error` if submitting the operation to the underlying reactor fails.
     fn submit(&mut self, op: Self::Operation) -> Result<(), Self::Error>;
 }

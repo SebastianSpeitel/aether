@@ -152,7 +152,10 @@ impl<const N: usize> Allocator for ArenaAllocator<N> {
     ) -> impl Guard<T> + 'a {
         #[cfg(debug_assertions)]
         if let Err(err) = self.validate(token) {
-            self.handle_error(err, Some(format_args!("read_unchecked called on invalid token")));
+            self.handle_error(
+                err,
+                Some(format_args!("read_unchecked called on invalid token")),
+            );
         }
         unsafe { token.as_ref() }
     }
@@ -164,7 +167,10 @@ impl<const N: usize> Allocator for ArenaAllocator<N> {
     ) -> impl GuardMut<T> + 'a {
         #[cfg(debug_assertions)]
         if let Err(err) = self.validate(token) {
-            self.handle_error(err, Some(format_args!("write_unchecked called on invalid token")));
+            self.handle_error(
+                err,
+                Some(format_args!("write_unchecked called on invalid token")),
+            );
         }
         unsafe { &mut *token.as_ptr() }
     }

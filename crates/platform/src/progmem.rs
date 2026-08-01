@@ -47,16 +47,18 @@ impl<T: ?Sized> ProgPtr<T> {
 impl ProgPtr<u8> {
     /// Reads the byte at this Flash location safely.
     #[must_use]
-    #[inline(always)]
+    #[inline]
     pub fn read_byte(&self) -> u8 {
-        read_byte(self.addr)
+        unsafe { read_byte(self.addr) }
     }
 }
 
 /// Reads a single byte from Flash memory (ROM) at the specified pointer address.
-#[inline(always)]
-#[allow(clippy::inline_always, clippy::not_unsafe_ptr_arg_deref)]
-pub fn read_byte(addr: *const u8) -> u8 {
+///
+/// # Safety
+/// The caller must ensure that `addr` points to a valid byte in program flash memory (or RAM fallback).
+#[inline]
+pub unsafe fn read_byte(addr: *const u8) -> u8 {
     #[cfg(target_arch = "avr")]
     {
         let ptr_u16 = addr as u16;
@@ -217,7 +219,10 @@ impl core::fmt::Display for PStr {
 
 #[cfg(feature = "ufmt")]
 impl ufmt::uDisplay for PStr {
-    fn fmt<W: ufmt::uWrite + ?Sized>(&self, f: &mut ufmt::Formatter<'_, W>) -> Result<(), W::Error> {
+    fn fmt<W: ufmt::uWrite + ?Sized>(
+        &self,
+        f: &mut ufmt::Formatter<'_, W>,
+    ) -> Result<(), W::Error> {
         for i in 0..self.len() {
             let b = self.read_byte(i);
             f.write_char(b as char)?;
@@ -248,6 +253,10 @@ macro_rules! pwrite {
     ($writer:expr, $str_bytes:expr) => {{
         #[unsafe(link_section = ".progmem.data")]
         static STR: [u8; $str_bytes.len()] = *$str_bytes;
-        let _ = ufmt::uwrite!($writer, "{}", $crate::progmem::PStr::from_ptr(STR.as_ptr(), STR.len()));
+        let _ = ufmt::uwrite!(
+            $writer,
+            "{}",
+            $crate::progmem::PStr::from_ptr(STR.as_ptr(), STR.len())
+        );
     }};
 }
