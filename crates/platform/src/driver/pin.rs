@@ -1,18 +1,13 @@
-#[cfg(feature = "embedded")]
-use embedded_hal::digital::{InputPin, OutputPin};
-
-#[cfg(feature = "embedded")]
 use aether_core::driver::{Driver, ReadDriver, WriteDriver};
+use embedded_hal::digital::{ErrorType, InputPin, OutputPin};
 
 /// A universal GPIO pin driver wrapper for `embedded-hal` pins.
 ///
 /// Occupies 0 bytes of RAM when `P` is a Zero-Sized Type (ZST)!
-#[cfg(feature = "embedded")]
 pub struct PinDriver<P> {
     pin: core::cell::UnsafeCell<P>,
 }
 
-#[cfg(feature = "embedded")]
 impl<P> PinDriver<P> {
     /// Creates a new `PinDriver` wrapping the provided `embedded-hal` pin.
     #[inline]
@@ -29,43 +24,51 @@ impl<P> PinDriver<P> {
     }
 }
 
-#[cfg(feature = "embedded")]
-impl<P> Driver for PinDriver<P> {
-    type Error = core::convert::Infallible;
+impl<P: ErrorType> Driver for PinDriver<P>
+where
+    P::Error: core::error::Error,
+{
+    type Error = P::Error;
     type OpenOptions = ();
     type Handle = ();
 
-    #[inline]
-    fn open(&self, _options: ()) -> Result<(), Self::Error> {
+    fn open(&self, _options: Self::OpenOptions) -> Result<Self::Handle, Self::Error> {
         Ok(())
     }
 }
 
-#[cfg(feature = "embedded")]
-impl<P: OutputPin> WriteDriver for PinDriver<P> {
-    #[inline]
-    fn write(&self, _handle: &(), buf: &[u8]) -> Result<usize, Self::Error> {
-        if let Some(&state) = buf.first() {
-            let pin = unsafe { &mut *self.pin.get() };
-            if state != 0 {
-                let _ = pin.set_high();
-            } else {
-                let _ = pin.set_low();
-            }
+impl<P: OutputPin> WriteDriver for PinDriver<P>
+where
+    P::Error: core::error::Error,
+{
+    fn write(&self, _handle: &Self::Handle, buf: &[u8]) -> Result<usize, Self::Error> {
+        if buf.is_empty() {
+            return Ok(0);
         }
-        Ok(1)
+        let pin = unsafe { &mut *self.pin.get() };
+        if buf[0] == 0 {
+            pin.set_low()?;
+        } else {
+            pin.set_high()?;
+        }
+        Ok(buf.len())
+    }
+
+    fn flush(&self, _handle: &Self::Handle) -> Result<(), Self::Error> {
+        Ok(())
     }
 }
 
-#[cfg(feature = "embedded")]
-impl<P: InputPin> ReadDriver for PinDriver<P> {
-    #[inline]
-    fn read(&self, _handle: &(), buf: &mut [u8]) -> Result<usize, Self::Error> {
-        if !buf.is_empty() {
-            let pin = unsafe { &mut *self.pin.get() };
-            let is_high = pin.is_high().unwrap_or(false);
-            buf[0] = if is_high { 1 } else { 0 };
+impl<P: InputPin> ReadDriver for PinDriver<P>
+where
+    P::Error: core::error::Error,
+{
+    fn read(&self, _handle: &Self::Handle, buf: &mut [u8]) -> Result<usize, Self::Error> {
+        if buf.is_empty() {
+            return Ok(0);
         }
+        let pin = unsafe { &mut *self.pin.get() };
+        buf[0] = u8::from(pin.is_high()?);
         Ok(1)
     }
 }

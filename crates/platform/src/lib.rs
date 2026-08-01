@@ -1,6 +1,7 @@
 #![no_std]
 
 pub mod allocator;
+#[cfg(feature = "embedded")]
 pub mod driver;
 pub mod lock;
 pub mod progmem;
