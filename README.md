@@ -7,7 +7,7 @@ Aether is a high-performance, `#![no_std]` capability-based kernel, memory alloc
 ## Core Crates
 
 - **`aether-core`**: Defines the foundational abstractions:
-  - **`Allocator` & `Token`**: Abstract memory allocation with scoped `Guard` / `GuardMut` access and zero-overhead debug error handling.
+  - **`Allocator` & `Token`**: Abstract memory allocation with scoped `Guard` / `GuardMut` access (`get_ref`, `get_mut`) and zero-overhead debug error handling.
   - **`Driver` & Sub-Capabilities**: Resource management via safe owned handles and compile-time sub-capability traits (`ReadDriver`, `WriteDriver`, `PositionedReadDriver`, `PositionedWriteDriver`, `BlockDriver`, `IoctlDriver`, `CloneDriver`).
   - **`Kernel` & `Task`**: Capability-driven task execution with ergonomic, compiler-checked `Poll<T>` yielding (`return kernel.r#yield();`).
 - **`aether-platform`**: Platform-specific allocators, drivers, and utilities:

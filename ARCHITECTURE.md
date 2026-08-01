@@ -39,7 +39,10 @@ pub trait Allocator {
   - In debug builds (`cfg(debug_assertions)`), panics with `format_args!` diagnostic context.
   - In release builds (`cfg(not(debug_assertions))`), uses `core::hint::unreachable_unchecked()` for zero overhead.
 - **Unchecked Guards**:
-  - `read_unchecked` and `write_unchecked` return `impl Guard<T> + 'a` and `impl GuardMut<T> + 'a` directly (using `&T` or `&mut T` blanket guard implementations) without heap allocation or transmutes.
+  - `get_ref_unchecked` and `get_mut_unchecked` return `impl Guard<T> + 'a` and `impl GuardMut<T> + 'a` directly (using `&T` or `&mut T` blanket guard implementations) without heap allocation or transmutes.
+- **Memory vs Device I/O Terminology**:
+  - Memory references on `Allocator` use `get_ref` and `get_mut` (returning `Guard<T>` / `GuardMut<T>`).
+  - Device I/O byte transfers on `Driver` use `read` and `write` (transferring byte buffers).
 
 ---
 

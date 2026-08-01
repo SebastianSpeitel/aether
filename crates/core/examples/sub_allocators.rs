@@ -96,28 +96,28 @@ impl Allocator for TaskSubArena {
         Ok(())
     }
 
-    fn read_raw<'b, T: ?Sized + 'b>(
+    fn get_ref_raw<'b, T: ?Sized + 'b>(
         &'b self,
         token: Self::RawToken<T>,
     ) -> Result<impl Guard<T> + 'b, Self::Error> {
         unsafe { Ok(token.as_ref()) }
     }
 
-    fn write_raw<'b, T: ?Sized + 'b>(
+    fn get_mut_raw<'b, T: ?Sized + 'b>(
         &'b self,
         token: Self::RawToken<T>,
     ) -> Result<impl GuardMut<T> + 'b, Self::Error> {
         unsafe { Ok(&mut *token.as_ptr()) }
     }
 
-    unsafe fn read_unchecked<'b, T: ?Sized + 'b>(
+    unsafe fn get_ref_unchecked<'b, T: ?Sized + 'b>(
         &'b self,
         token: Self::RawToken<T>,
     ) -> impl Guard<T> + 'b {
         unsafe { token.as_ref() }
     }
 
-    unsafe fn write_unchecked<'b, T: ?Sized + 'b>(
+    unsafe fn get_mut_unchecked<'b, T: ?Sized + 'b>(
         &'b self,
         token: Self::RawToken<T>,
     ) -> impl GuardMut<T> + 'b {
@@ -223,9 +223,9 @@ where
             println!("  [Task] Upgrading SubAllocator Token to GuardMut via Kernel Allocator...");
 
             if let Some(ref sub_arena_token) = self.sub_arena_token {
-                // 3. Directly pass owned Token to write() via auto-downgrade
+                // 3. Directly pass owned Token to get_mut() via auto-downgrade
                 let arena_guard = kernel_alloc
-                    .write::<TaskSubArena, _>(sub_arena_token)
+                    .get_mut::<TaskSubArena, _>(sub_arena_token)
                     .expect("Failed to get GuardMut for SubAllocator");
 
                 println!(

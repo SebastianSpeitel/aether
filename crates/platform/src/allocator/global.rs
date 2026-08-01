@@ -54,7 +54,10 @@ impl<A: GlobalAlloc> Allocator for Global<A> {
     }
 
     #[inline]
-    fn allocate_raw(&self, layout: Layout) -> Result<Self::Token<[MaybeUninit<u8>]>, Self::Error> {
+    fn allocate_raw(
+        &self,
+        layout: Layout,
+    ) -> Result<Self::RawToken<[MaybeUninit<u8>]>, Self::Error> {
         unsafe {
             let ptr = self.0.alloc(layout);
             if ptr.is_null() {
@@ -63,7 +66,7 @@ impl<A: GlobalAlloc> Allocator for Global<A> {
             }
             let slice_ptr =
                 core::ptr::slice_from_raw_parts_mut(ptr.cast::<MaybeUninit<u8>>(), layout.size());
-            Ok(Box::from_raw(slice_ptr))
+            NonNull::new(slice_ptr).ok_or(AllocError)
         }
     }
 
@@ -80,7 +83,7 @@ impl<A: GlobalAlloc> Allocator for Global<A> {
     }
 
     #[inline]
-    fn read_raw<'a, T: ?Sized + 'a>(
+    fn get_ref_raw<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> Result<impl Guard<T> + 'a, Self::Error> {
@@ -88,7 +91,7 @@ impl<A: GlobalAlloc> Allocator for Global<A> {
     }
 
     #[inline]
-    fn write_raw<'a, T: ?Sized + 'a>(
+    fn get_mut_raw<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> Result<impl GuardMut<T> + 'a, Self::Error> {
@@ -96,7 +99,7 @@ impl<A: GlobalAlloc> Allocator for Global<A> {
     }
 
     #[inline]
-    unsafe fn read_unchecked<'a, T: ?Sized + 'a>(
+    unsafe fn get_ref_unchecked<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> impl Guard<T> + 'a {
@@ -104,7 +107,7 @@ impl<A: GlobalAlloc> Allocator for Global<A> {
     }
 
     #[inline]
-    unsafe fn write_unchecked<'a, T: ?Sized + 'a>(
+    unsafe fn get_mut_unchecked<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> impl GuardMut<T> + 'a {

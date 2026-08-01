@@ -128,7 +128,7 @@ impl<const N: usize> Allocator for ArenaAllocator<N> {
     }
 
     #[inline]
-    fn read_raw<'a, T: ?Sized + 'a>(
+    fn get_ref_raw<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> Result<impl Guard<T> + 'a, Self::Error> {
@@ -137,7 +137,7 @@ impl<const N: usize> Allocator for ArenaAllocator<N> {
     }
 
     #[inline]
-    fn write_raw<'a, T: ?Sized + 'a>(
+    fn get_mut_raw<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> Result<impl GuardMut<T> + 'a, Self::Error> {
@@ -146,7 +146,7 @@ impl<const N: usize> Allocator for ArenaAllocator<N> {
     }
 
     #[inline]
-    unsafe fn read_unchecked<'a, T: ?Sized + 'a>(
+    unsafe fn get_ref_unchecked<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> impl Guard<T> + 'a {
@@ -154,14 +154,14 @@ impl<const N: usize> Allocator for ArenaAllocator<N> {
         if let Err(err) = self.validate(token) {
             self.handle_error(
                 err,
-                Some(format_args!("read_unchecked called on invalid token")),
+                Some(format_args!("get_ref_unchecked called on invalid token")),
             );
         }
         unsafe { token.as_ref() }
     }
 
     #[inline]
-    unsafe fn write_unchecked<'a, T: ?Sized + 'a>(
+    unsafe fn get_mut_unchecked<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> impl GuardMut<T> + 'a {
@@ -169,7 +169,7 @@ impl<const N: usize> Allocator for ArenaAllocator<N> {
         if let Err(err) = self.validate(token) {
             self.handle_error(
                 err,
-                Some(format_args!("write_unchecked called on invalid token")),
+                Some(format_args!("get_mut_unchecked called on invalid token")),
             );
         }
         unsafe { &mut *token.as_ptr() }
