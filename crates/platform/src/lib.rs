@@ -12,7 +12,7 @@ pub use allocator::{ArenaAllocator, SlabAllocator};
 #[cfg(feature = "embedded")]
 pub use driver::PinDriver;
 pub use lock::{Guard, Lock, Token};
-pub use progmem::{PStr, ProgPtr, read_byte};
+pub use progmem::{PStr, ProgPtr};
 pub use time::SystemClock;
 
 pub mod prelude {
@@ -22,6 +22,6 @@ pub mod prelude {
     #[cfg(feature = "embedded")]
     pub use crate::driver::PinDriver;
     pub use crate::lock::{Lock, Token};
-    pub use crate::progmem::{PStr, ProgPtr, read_byte};
+    pub use crate::progmem::{PStr, ProgPtr};
     pub use crate::time::SystemClock;
 }

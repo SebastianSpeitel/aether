@@ -58,7 +58,7 @@ impl ProgPtr<u8> {
 /// # Safety
 /// The caller must ensure that `addr` points to a valid byte in program flash memory (or RAM fallback).
 #[inline]
-pub unsafe fn read_byte(addr: *const u8) -> u8 {
+pub(crate) unsafe fn read_byte(addr: *const u8) -> u8 {
     #[cfg(target_arch = "avr")]
     {
         let ptr_u16 = addr as u16;
