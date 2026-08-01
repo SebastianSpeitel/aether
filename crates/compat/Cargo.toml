@@ -1,0 +1,8 @@
+[package]
+name = "aether-compat"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+aether-core = { path = "../core" }
+aether-task = { path = "../task" }

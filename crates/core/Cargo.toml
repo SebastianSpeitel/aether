@@ -9,3 +9,6 @@ std = ["alloc", "aether-time/std"]
 
 [dependencies]
 aether-time = { path = "../time", default-features = false }
+
+[dev-dependencies]
+aether-platform = { path = "../platform" }

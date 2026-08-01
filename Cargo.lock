@@ -3,9 +3,18 @@
 version = 4
 
 [[package]]
+name = "aether-compat"
+version = "0.1.0"
+dependencies = [
+ "aether-core",
+ "aether-task",
+]
+
+[[package]]
 name = "aether-core"
 version = "0.1.0"
 dependencies = [
+ "aether-platform",
  "aether-time",
 ]
 
@@ -17,6 +26,8 @@ dependencies = [
  "aether-time",
  "arduino-hal",
  "avr-device 0.5.4",
+ "embedded-hal 1.0.0",
+ "ufmt",
 ]
 
 [[package]]
