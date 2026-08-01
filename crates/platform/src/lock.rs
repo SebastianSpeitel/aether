@@ -130,21 +130,19 @@ impl<T, const MAX: Priority> Lock<T, MAX> {
             };
         }
 
-        #[allow(unused_mut)]
-        let mut sreg = 0u8;
         #[cfg(target_arch = "avr")]
-        unsafe {
+        let sreg = unsafe {
+            let sreg: u8;
             core::arch::asm!(
                 "in {}, 0x3F",
                 "cli",
                 out(reg) sreg,
                 options(nostack)
             );
-        }
+            sreg
+        };
         #[cfg(not(target_arch = "avr"))]
-        {
-            let _ = sreg;
-        }
+        let sreg = 0u8;
 
         Guard {
             data: unsafe { &mut *self.data.get() },

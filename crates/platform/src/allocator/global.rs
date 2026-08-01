@@ -80,7 +80,7 @@ impl<A: GlobalAlloc> Allocator for Global<A> {
     }
 
     #[inline]
-    fn read<'a, T: ?Sized + 'a>(
+    fn read_raw<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> Result<impl Guard<T> + 'a, Self::Error> {
@@ -88,7 +88,7 @@ impl<A: GlobalAlloc> Allocator for Global<A> {
     }
 
     #[inline]
-    fn write<'a, T: ?Sized + 'a>(
+    fn write_raw<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> Result<impl GuardMut<T> + 'a, Self::Error> {
@@ -96,12 +96,18 @@ impl<A: GlobalAlloc> Allocator for Global<A> {
     }
 
     #[inline]
-    unsafe fn read_unchecked<T: ?Sized>(&self, token: Self::RawToken<T>) -> &T {
+    unsafe fn read_unchecked<'a, T: ?Sized + 'a>(
+        &'a self,
+        token: Self::RawToken<T>,
+    ) -> impl Guard<T> + 'a {
         unsafe { token.as_ref() }
     }
 
     #[inline]
-    unsafe fn write_unchecked<T: ?Sized>(&self, token: Self::RawToken<T>) -> &mut T {
+    unsafe fn write_unchecked<'a, T: ?Sized + 'a>(
+        &'a self,
+        token: Self::RawToken<T>,
+    ) -> impl GuardMut<T> + 'a {
         unsafe { &mut *token.as_ptr() }
     }
 }

@@ -211,7 +211,7 @@ impl<const BLOCK_SIZE: usize, const TOTAL_SIZE: usize> Allocator
     }
 
     #[inline]
-    fn read<'a, T: ?Sized + 'a>(
+    fn read_raw<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> Result<impl Guard<T> + 'a, Self::Error> {
@@ -220,7 +220,7 @@ impl<const BLOCK_SIZE: usize, const TOTAL_SIZE: usize> Allocator
     }
 
     #[inline]
-    fn write<'a, T: ?Sized + 'a>(
+    fn write_raw<'a, T: ?Sized + 'a>(
         &'a self,
         token: Self::RawToken<T>,
     ) -> Result<impl GuardMut<T> + 'a, Self::Error> {
@@ -229,12 +229,26 @@ impl<const BLOCK_SIZE: usize, const TOTAL_SIZE: usize> Allocator
     }
 
     #[inline]
-    unsafe fn read_unchecked<T: ?Sized>(&self, token: Self::RawToken<T>) -> &T {
+    unsafe fn read_unchecked<'a, T: ?Sized + 'a>(
+        &'a self,
+        token: Self::RawToken<T>,
+    ) -> impl Guard<T> + 'a {
+        #[cfg(debug_assertions)]
+        if let Err(err) = self.validate(token) {
+            self.handle_error(err, Some(format_args!("read_unchecked called on invalid token")));
+        }
         unsafe { token.as_ref() }
     }
 
     #[inline]
-    unsafe fn write_unchecked<T: ?Sized>(&self, token: Self::RawToken<T>) -> &mut T {
+    unsafe fn write_unchecked<'a, T: ?Sized + 'a>(
+        &'a self,
+        token: Self::RawToken<T>,
+    ) -> impl GuardMut<T> + 'a {
+        #[cfg(debug_assertions)]
+        if let Err(err) = self.validate(token) {
+            self.handle_error(err, Some(format_args!("write_unchecked called on invalid token")));
+        }
         unsafe { &mut *token.as_ptr() }
     }
 }
