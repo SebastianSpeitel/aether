@@ -1,7 +1,7 @@
 #![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 
-pub use crate::primitive::{Primitive, U10, U2, U6};
 use crate::bitring::{BitRing, RingIter};
+pub use crate::primitive::{Primitive, U2, U6, U10};
 
 /// Trait defining an encoding scheme for delta-compressed time-series data.
 pub trait Encoding {
@@ -35,6 +35,12 @@ pub trait Encoding {
 
     /// Check if the next sample in `reader` is a keyframe.
     fn is_keyframe(reader: &impl crate::bitring::Peek) -> bool;
+
+    /// Denoise a sample value against the current `state` given a `DEADBAND` threshold.
+    #[inline]
+    fn denoise<const DEADBAND: usize>(value: Self::Value, _state: &Self::State) -> Self::Value {
+        value
+    }
 }
 
 /// Generic difference encoding scheme parameterized over value type `T` and flag width `F`.
@@ -100,6 +106,23 @@ impl<T: Primitive, F: Primitive> Encoding for DiffEncoding<T, F> {
             _ => false,
         }
     }
+
+    #[inline]
+    fn denoise<const DEADBAND: usize>(val: T, state: &T) -> T {
+        if DEADBAND == 0 {
+            return val;
+        }
+        let diff = val.difference_as_isize(*state);
+        let min_bound = Self::MIN_DELTA - (DEADBAND as isize);
+        let max_bound = Self::MAX_DELTA + (DEADBAND as isize);
+
+        if (min_bound..=max_bound).contains(&diff) {
+            let clamped_diff = diff.clamp(Self::MIN_DELTA, Self::MAX_DELTA);
+            state.wrapping_add_signed(clamped_diff)
+        } else {
+            val
+        }
+    }
 }
 
 /// State tracking value and velocity for gradient encoding.
@@ -146,13 +169,11 @@ impl<T: Primitive, F: Primitive, V: Primitive> Encoding for GradientEncoding<T, 
             writer.push(val);
 
             let raw_vel = val.difference_as_isize(state.value);
-            let new_vel = if (v_min..=v_max).contains(&raw_vel) {
-                raw_vel
-            } else {
-                0
-            };
+            let new_vel = raw_vel.clamp(v_min, v_max);
 
-            writer.push(V::from_usize((new_vel as usize) & ((1usize << V::BITS) - 1)));
+            writer.push(V::from_usize(
+                (new_vel as usize) & ((1usize << V::BITS) - 1),
+            ));
 
             state.velocity = new_vel;
             state.value = val;
@@ -191,6 +212,24 @@ impl<T: Primitive, F: Primitive, V: Primitive> Encoding for GradientEncoding<T, 
             7 => reader.peek_n::<7>() == key_flag,
             8 => reader.peek_n::<8>() == key_flag,
             _ => false,
+        }
+    }
+
+    #[inline]
+    fn denoise<const DEADBAND: usize>(val: T, state: &GradientState<T>) -> T {
+        if DEADBAND == 0 {
+            return val;
+        }
+        let expected_base = state.value.wrapping_add_signed(state.velocity);
+        let grad_diff = val.difference_as_isize(expected_base);
+        let min_bound = Self::MIN_DELTA - (DEADBAND as isize);
+        let max_bound = Self::MAX_DELTA + (DEADBAND as isize);
+
+        if (min_bound..=max_bound).contains(&grad_diff) {
+            let clamped_diff = grad_diff.clamp(Self::MIN_DELTA, Self::MAX_DELTA);
+            expected_base.wrapping_add_signed(clamped_diff)
+        } else {
+            val
         }
     }
 }

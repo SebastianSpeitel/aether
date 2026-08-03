@@ -9,6 +9,7 @@ pub struct EncodedRing<const N: usize, E: Encoding> {
     ring: BitRing<N>,
     tail: usize,
     item_count: usize,
+    samples_since_keyframe: usize,
     last_state: E::State,
 }
 
@@ -35,6 +36,7 @@ impl<const N: usize, E: Encoding> EncodedRing<N, E> {
             ring: BitRing::new(),
             tail: 0,
             item_count: 0,
+            samples_since_keyframe: 0,
             last_state: E::State::default(),
         }
     }
@@ -65,7 +67,7 @@ impl<const N: usize, E: Encoding> EncodedRing<N, E> {
         self.capacity_bits() - self.bit_len()
     }
 
-    /// Push a sample value into the encoded ring buffer.
+    /// Push a sample value into the encoded ring buffer (exact lossless by default).
     #[inline]
     pub fn push(&mut self, value: E::Value) {
         while self.available_bits() < E::MAX_BITS {
@@ -74,14 +76,27 @@ impl<const N: usize, E: Encoding> EncodedRing<N, E> {
             if self.item_count == 0 {
                 self.ring.head = 0;
                 self.tail = 0;
+                self.samples_since_keyframe = 0;
                 self.last_state = E::State::default();
                 break;
             }
         }
 
-        let force_keyframe = self.item_count.is_multiple_of(KEYFRAME_INTERVAL);
-        E::encode(value, force_keyframe, &mut self.last_state, &mut self.ring);
+        let force_keyframe = self.item_count == 0 || self.samples_since_keyframe >= KEYFRAME_INTERVAL;
+        let is_key = E::encode(value, force_keyframe, &mut self.last_state, &mut self.ring);
         self.item_count += 1;
+        if is_key {
+            self.samples_since_keyframe = 1;
+        } else {
+            self.samples_since_keyframe += 1;
+        }
+    }
+
+    /// Push a sample value into the encoded ring buffer with a const generic `DENOISE` threshold.
+    #[inline]
+    pub fn push_denoised<const DENOISE: usize>(&mut self, value: E::Value) {
+        let denoised_val = E::denoise::<DENOISE>(value, &self.last_state);
+        self.push(denoised_val);
     }
 
     #[inline]
