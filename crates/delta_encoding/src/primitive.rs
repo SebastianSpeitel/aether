@@ -190,10 +190,12 @@ macro_rules! impl_primitive_wrapper {
             fn difference_as_isize(self, other: Self) -> isize {
                 self.assert_valid();
                 other.assert_valid();
-                let diff = (i128::from(self.0) - i128::from(other.0)) & (i128::from(Self::MASK));
-                let half = 1i128 << ($bits - 1);
+                let mask = (1u128 << $bits) - 1;
+                let diff = (self.0.wrapping_sub(other.0) as u128) & mask;
+                let half = 1u128 << ($bits - 1);
                 if diff >= half {
-                    (diff - (1i128 << $bits)) as isize
+                    let signed = (diff as i128) - (1i128 << $bits);
+                    signed as isize
                 } else {
                     diff as isize
                 }

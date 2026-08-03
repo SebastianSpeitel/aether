@@ -82,7 +82,8 @@ impl<const N: usize, E: Encoding> EncodedRing<N, E> {
             }
         }
 
-        let force_keyframe = self.item_count == 0 || self.samples_since_keyframe >= KEYFRAME_INTERVAL;
+        let force_keyframe =
+            self.item_count == 0 || self.samples_since_keyframe >= KEYFRAME_INTERVAL;
         let is_key = E::encode(value, force_keyframe, &mut self.last_state, &mut self.ring);
         self.item_count += 1;
         if is_key {

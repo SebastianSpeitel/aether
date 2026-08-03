@@ -62,7 +62,11 @@ fn scale_to_u32(vals: &[f64], max_val: f64) -> Vec<U32> {
 
 fn scale_to_u63(vals: &[f64], max_val: f64) -> Vec<U63> {
     vals.iter()
-        .map(|&v| U63((v / max_val * 9223372036854775807.0).round() as u64))
+        .map(|&v| {
+            let scaled = (v / max_val * 9223372036854775807.0).round();
+            let clamped = (scaled as u64).min(9223372036854775807);
+            U63(clamped)
+        })
         .collect()
 }
 
@@ -75,7 +79,13 @@ fn record_size_benchmark<E: Encoding>(
 ) where
     E::Value: Copy,
 {
-    record_denoised_size_benchmark::<E, 0>(name, dataset_label, data, raw_bits_per_sample, md_output);
+    record_denoised_size_benchmark::<E, 0>(
+        name,
+        dataset_label,
+        data,
+        raw_bits_per_sample,
+        md_output,
+    );
 }
 
 fn record_denoised_size_benchmark<E: Encoding, const DENOISE: usize>(
@@ -117,7 +127,13 @@ fn record_denoised_size_benchmark<E: Encoding, const DENOISE: usize>(
     let _ = writeln!(
         md_output,
         "| {} | `{}` | {} | {} bits | {} bits | {:.2} BPS | **{:.2}x** |",
-        dataset_label, display_name, data.len(), uncompressed_bits, compressed_bits, bps, ratio
+        dataset_label,
+        display_name,
+        data.len(),
+        uncompressed_bits,
+        compressed_bits,
+        bps,
+        ratio
     );
 }
 
