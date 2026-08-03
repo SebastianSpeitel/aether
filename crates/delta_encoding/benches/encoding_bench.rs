@@ -1,5 +1,5 @@
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use delta_encoding::primitive::{U10, U1, U2, U32, U4, U5, U6, U63};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
+use delta_encoding::primitive::{U1, U2, U4, U5, U6, U10, U32, U63};
 use delta_encoding::{DiffEncoding, EncodedRing, Encoding, GradientEncoding};
 
 fn lcg(seed: u64) -> u64 {
@@ -12,7 +12,12 @@ fn add_noise(val: f64, noise_amplitude: f64, index: usize) -> f64 {
     (val + noise).max(0.0)
 }
 
-fn generate_series(dataset_type: &str, count: usize, add_noise_flag: bool, max_val: f64) -> Vec<f64> {
+fn generate_series(
+    dataset_type: &str,
+    count: usize,
+    add_noise_flag: bool,
+    max_val: f64,
+) -> Vec<f64> {
     let noise_amp = if add_noise_flag { max_val * 0.005 } else { 0.0 };
     (0..count)
         .map(|i| {
@@ -32,23 +37,33 @@ fn generate_series(dataset_type: &str, count: usize, add_noise_flag: bool, max_v
 }
 
 fn scale_to_u8(vals: &[f64], max_val: f64) -> Vec<u8> {
-    vals.iter().map(|&v| (v / max_val * 255.0).round() as u8).collect()
+    vals.iter()
+        .map(|&v| (v / max_val * 255.0).round() as u8)
+        .collect()
 }
 
 fn scale_to_u10(vals: &[f64], max_val: f64) -> Vec<U10> {
-    vals.iter().map(|&v| U10((v / max_val * 1023.0).round() as u16)).collect()
+    vals.iter()
+        .map(|&v| U10((v / max_val * 1023.0).round() as u16))
+        .collect()
 }
 
 fn scale_to_u16(vals: &[f64], max_val: f64) -> Vec<u16> {
-    vals.iter().map(|&v| (v / max_val * 65535.0).round() as u16).collect()
+    vals.iter()
+        .map(|&v| (v / max_val * 65535.0).round() as u16)
+        .collect()
 }
 
 fn scale_to_u32(vals: &[f64], max_val: f64) -> Vec<U32> {
-    vals.iter().map(|&v| U32((v / max_val * 4294967295.0).round() as u32)).collect()
+    vals.iter()
+        .map(|&v| U32((v / max_val * 4294967295.0).round() as u32))
+        .collect()
 }
 
 fn scale_to_u63(vals: &[f64], max_val: f64) -> Vec<U63> {
-    vals.iter().map(|&v| U63((v / max_val * 9223372036854775807.0).round() as u64)).collect()
+    vals.iter()
+        .map(|&v| U63((v / max_val * 9223372036854775807.0).round() as u64))
+        .collect()
 }
 
 fn record_size_benchmark<E: Encoding>(
@@ -60,9 +75,21 @@ fn record_size_benchmark<E: Encoding>(
 ) where
     E::Value: Copy,
 {
+    record_denoised_size_benchmark::<E, 0>(name, dataset_label, data, raw_bits_per_sample, md_output);
+}
+
+fn record_denoised_size_benchmark<E: Encoding, const DENOISE: usize>(
+    name: &str,
+    dataset_label: &str,
+    data: &[E::Value],
+    raw_bits_per_sample: usize,
+    md_output: &mut String,
+) where
+    E::Value: Copy,
+{
     let mut ring = EncodedRing::<131072, E>::new();
     for &v in data {
-        ring.push(v);
+        ring.push_denoised::<DENOISE>(v);
     }
     let uncompressed_bits = data.len() * raw_bits_per_sample;
     let compressed_bits = ring.bit_len();
@@ -76,22 +103,30 @@ fn record_size_benchmark<E: Encoding>(
     } else {
         0.0
     };
+    let display_name = if DENOISE > 0 {
+        format!("{} [Denoise={}]", name, DENOISE)
+    } else {
+        name.to_string()
+    };
     println!(
-        "  {:<35} | BPS: {:5.2} | Ratio: {:6.2}x ({:>6} bits -> {:>6} bits)",
-        name, bps, ratio, uncompressed_bits, compressed_bits
+        "  {:<42} | BPS: {:5.2} | Ratio: {:6.2}x ({:>6} bits -> {:>6} bits)",
+        display_name, bps, ratio, uncompressed_bits, compressed_bits
     );
 
     use std::fmt::Write;
     let _ = writeln!(
         md_output,
         "| {} | `{}` | {} | {} bits | {} bits | {:.2} BPS | **{:.2}x** |",
-        dataset_label, name, data.len(), uncompressed_bits, compressed_bits, bps, ratio
+        dataset_label, display_name, data.len(), uncompressed_bits, compressed_bits, bps, ratio
     );
 }
 
 fn bench_speed_and_compression(c: &mut Criterion) {
     let dataset_size = 10_000;
-    let linear_u16 = scale_to_u16(&generate_series("Linear Ramp", dataset_size, false, 1.0), 1.0);
+    let linear_u16 = scale_to_u16(
+        &generate_series("Linear Ramp", dataset_size, false, 1.0),
+        1.0,
+    );
 
     let mut group = c.benchmark_group("encoding_performance");
     group.bench_with_input(
@@ -109,7 +144,10 @@ fn bench_speed_and_compression(c: &mut Criterion) {
     );
     group.finish();
 
-    println!("\n=== EXTENSIVE COMPRESSION SIZE BENCHMARKS WITH RESCALING AND NOISE ({} samples) ===", dataset_size);
+    println!(
+        "\n=== EXTENSIVE COMPRESSION SIZE BENCHMARKS WITH RESCALING AND NOISE ({} samples) ===",
+        dataset_size
+    );
 
     let mut md_table = String::new();
     md_table.push_str("# Encoding Benchmark Size Results\n\n");
@@ -135,17 +173,132 @@ fn bench_speed_and_compression(c: &mut Criterion) {
             let data_u32 = scale_to_u32(&raw_data, 1.0);
             let data_u63 = scale_to_u63(&raw_data, 1.0);
 
-            record_size_benchmark::<DiffEncoding<u8, U1>>("DiffEncoding<u8, U1>", &label, &data_u8, 8, &mut md_table);
-            record_size_benchmark::<DiffEncoding<u8, U2>>("DiffEncoding<u8, U2>", &label, &data_u8, 8, &mut md_table);
-            record_size_benchmark::<DiffEncoding<u8, U4>>("DiffEncoding<u8, U4>", &label, &data_u8, 8, &mut md_table);
-            record_size_benchmark::<GradientEncoding<u8, U2, u8>>("GradientEncoding<u8, U2, u8>", &label, &data_u8, 8, &mut md_table);
-            record_size_benchmark::<DiffEncoding<u16, U2>>("DiffEncoding<u16, U2>", &label, &data_u16, 16, &mut md_table);
-            record_size_benchmark::<DiffEncoding<u16, U4>>("DiffEncoding<u16, U4>", &label, &data_u16, 16, &mut md_table);
-            record_size_benchmark::<GradientEncoding<U10, U2, U6>>("GradientEncoding<U10, U2, U6>", &label, &data_u10, 10, &mut md_table);
-            record_size_benchmark::<GradientEncoding<u16, U2, u8>>("GradientEncoding<u16, U2, u8>", &label, &data_u16, 16, &mut md_table);
-            record_size_benchmark::<DiffEncoding<U32, U4>>("DiffEncoding<U32, U4>", &label, &data_u32, 32, &mut md_table);
-            record_size_benchmark::<DiffEncoding<U63, U5>>("DiffEncoding<U63, U5>", &label, &data_u63, 63, &mut md_table);
-            record_size_benchmark::<GradientEncoding<U63, U2, u8>>("GradientEncoding<U63, U2, u8>", &label, &data_u63, 63, &mut md_table);
+            record_size_benchmark::<DiffEncoding<u8, U1>>(
+                "DiffEncoding<u8, U1>",
+                &label,
+                &data_u8,
+                8,
+                &mut md_table,
+            );
+            record_size_benchmark::<DiffEncoding<u8, U2>>(
+                "DiffEncoding<u8, U2>",
+                &label,
+                &data_u8,
+                8,
+                &mut md_table,
+            );
+            record_size_benchmark::<DiffEncoding<u8, U4>>(
+                "DiffEncoding<u8, U4>",
+                &label,
+                &data_u8,
+                8,
+                &mut md_table,
+            );
+            record_size_benchmark::<GradientEncoding<u8, U2, u8>>(
+                "GradientEncoding<u8, U2, u8>",
+                &label,
+                &data_u8,
+                8,
+                &mut md_table,
+            );
+            record_size_benchmark::<GradientEncoding<u8, U4, u8>>(
+                "GradientEncoding<u8, U4, u8>",
+                &label,
+                &data_u8,
+                8,
+                &mut md_table,
+            );
+            record_size_benchmark::<DiffEncoding<u16, U2>>(
+                "DiffEncoding<u16, U2>",
+                &label,
+                &data_u16,
+                16,
+                &mut md_table,
+            );
+            record_size_benchmark::<DiffEncoding<u16, U4>>(
+                "DiffEncoding<u16, U4>",
+                &label,
+                &data_u16,
+                16,
+                &mut md_table,
+            );
+            record_size_benchmark::<GradientEncoding<U10, U2, U6>>(
+                "GradientEncoding<U10, U2, U6>",
+                &label,
+                &data_u10,
+                10,
+                &mut md_table,
+            );
+            record_size_benchmark::<GradientEncoding<U10, U4, U6>>(
+                "GradientEncoding<U10, U4, U6>",
+                &label,
+                &data_u10,
+                10,
+                &mut md_table,
+            );
+            record_size_benchmark::<GradientEncoding<u16, U2, u8>>(
+                "GradientEncoding<u16, U2, u8>",
+                &label,
+                &data_u16,
+                16,
+                &mut md_table,
+            );
+            record_size_benchmark::<GradientEncoding<u16, U4, u8>>(
+                "GradientEncoding<u16, U4, u8>",
+                &label,
+                &data_u16,
+                16,
+                &mut md_table,
+            );
+            record_denoised_size_benchmark::<GradientEncoding<U10, U2, U6>, 2>(
+                "GradientEncoding<U10, U2, U6>",
+                &label,
+                &data_u10,
+                10,
+                &mut md_table,
+            );
+            record_denoised_size_benchmark::<GradientEncoding<U10, U2, U6>, 16>(
+                "GradientEncoding<U10, U2, U6>",
+                &label,
+                &data_u10,
+                10,
+                &mut md_table,
+            );
+            record_denoised_size_benchmark::<GradientEncoding<u16, U4, u8>, 2>(
+                "GradientEncoding<u16, U4, u8>",
+                &label,
+                &data_u16,
+                16,
+                &mut md_table,
+            );
+            record_denoised_size_benchmark::<GradientEncoding<u16, U4, u8>, 16>(
+                "GradientEncoding<u16, U4, u8>",
+                &label,
+                &data_u16,
+                16,
+                &mut md_table,
+            );
+            record_size_benchmark::<DiffEncoding<U32, U4>>(
+                "DiffEncoding<U32, U4>",
+                &label,
+                &data_u32,
+                32,
+                &mut md_table,
+            );
+            record_size_benchmark::<DiffEncoding<U63, U5>>(
+                "DiffEncoding<U63, U5>",
+                &label,
+                &data_u63,
+                63,
+                &mut md_table,
+            );
+            record_size_benchmark::<GradientEncoding<U63, U2, u8>>(
+                "GradientEncoding<U63, U2, u8>",
+                &label,
+                &data_u63,
+                63,
+                &mut md_table,
+            );
         }
     }
 
@@ -154,6 +307,3 @@ fn bench_speed_and_compression(c: &mut Criterion) {
 
 criterion_group!(benches, bench_speed_and_compression);
 criterion_main!(benches);
-
-
-

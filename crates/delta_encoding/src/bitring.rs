@@ -60,9 +60,7 @@ impl<const N: usize> BitRing<N> {
         let bytes_needed = (bit_offset + usize::from(P::BITS)).div_ceil(8);
 
         let bits = val.as_usize() as u128;
-        let mask = u128::MAX
-            .checked_shr(128 - u32::from(P::BITS))
-            .unwrap_or(0);
+        let mask = u128::MAX.checked_shr(128 - u32::from(P::BITS)).unwrap_or(0);
 
         let payload = (bits & mask) << bit_offset;
         let mask_payload = mask << bit_offset;
@@ -107,9 +105,7 @@ impl<const N: usize> BitRing<N> {
             raw |= u128::from(self.bytes[(byte_idx + i) & Self::BYTE_INDEX_MASK]) << (i * 8);
         }
 
-        let mask = u128::MAX
-            .checked_shr(128 - u32::from(P::BITS))
-            .unwrap_or(0);
+        let mask = u128::MAX.checked_shr(128 - u32::from(P::BITS)).unwrap_or(0);
 
         let val = (raw >> bit_offset) & mask;
         P::from_usize(val as usize)
