@@ -1,0 +1,20 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 853d003e3d9aedc8cb27818a946a0032e878a13ef7a769431ad45086f807c9ca # shrinks to initial = [], extended = []
+cc e60c652b5c76aa3b556c655ed5f0415731b3412dbd3020decb2d89edb3ce7549 # shrinks to values = []
+cc 2ee87007189f92041e4cf4e0a7f23331dcca51455d39f37695ea771b0e394e0e # shrinks to values = []
+cc e25e606b0425ae21dc55ef9a4fe62ab5920d8209d7307b3a2decc69c6ae47dbf # shrinks to values = []
+cc 0aefe98fd76e6cb2084d3c01ebdb4b822ec5c62e1a9c56c8595d2abe2293b7e2 # shrinks to vals = [0, 2, 6, 12, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19111, 19219, 0, 2, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 15688, 21933, 28574, 9782, 35934, 63299, 61859, 52012, 7554, 39079, 10539, 47317, 54672, 8155, 17567, 32705, 11027, 3975, 56181, 32181, 15986, 17445, 37813, 34674, 17792, 13070, 62890, 12574]
+cc e062cf9787f506202827bad209b477a0e62bdd5e4562c7ea529361e46273976d # shrinks to vals = [U3(1), U3(3), U3(3), U3(4)]
+cc 210fdbd64c1c01cab7e26e3d6abb27e0f3bb78437bd13751f7591bea84c7ac6e # shrinks to initial = [U3(1), U3(3), U3(5), U3(5), U3(6)], extended = []
+cc cbdfbdb49a7b5fa0c6546ec357175a04081f5064a4faec6fe4cb9e9b6960a9dc # shrinks to initial = [], extended = [U3(7), U3(5)]
+cc be77e8a51255fe079114722e08a69425359c5fa900323c60d07fa46379036a6c # shrinks to vals = [U3(0), U3(1), U3(7), U3(6), U3(4)]
+cc fa96bdc2d1beb9e3d334777f636e10842c58711afccda793bc89b88dcfbd3ab9 # shrinks to vals = [U5(30), U5(27), U5(23)]
+cc af55eefbab5e6685bb3e8f176ed3c30c8ee1356a84a80c8c822ad96ec87988f3 # shrinks to vals = [U6(42), U6(49), U6(57)]
+cc 8e1fec8044b8260d097a0d7c71c6f241cde72ccb55db35f0fbc55cc7ebd420c0 # shrinks to initial = [U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(0), U6(32), U6(39), U6(47)], extended = []
+cc ee714775e3149e1f64ecd698d96b73789622be20a4389a7cab0a769ed898d87f # shrinks to initial = [U7(59)], extended = [U7(52), U7(44)]
+cc 519a47b4a5b6b289e166868fb3c0f2d92ce7909a125b4f545abcbe8fb26ae678 # shrinks to vals = [U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(0), U7(30), U7(37), U7(45)]

@@ -1,5 +1,12 @@
 [workspace]
-members = ["crates/core", "crates/task", "crates/platform", "crates/time", "crates/compat"]
+members = [
+    "crates/core",
+    "crates/task",
+    "crates/platform",
+    "crates/compat",
+    "crates/time",
+    "crates/delta_encoding",
+]
 resolver = "2"
 
 [workspace.package]
