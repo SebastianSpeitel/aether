@@ -1,5 +1,5 @@
 use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
-use delta_encoding::primitive::{U1, U2, U4, U6, U8, U10, U12, U18, U20, U24, U30, U32, U63};
+use delta_encoding::primitive::{U1, U2, U4, U6, U8, U10, U12, U18, U24, U30, U32, U63};
 use delta_encoding::{DiffEncoding, EncodedRing, Encoding, GradientEncoding};
 
 fn lcg(seed: u64) -> u64 {
