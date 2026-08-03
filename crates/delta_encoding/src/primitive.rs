@@ -181,8 +181,9 @@ macro_rules! impl_primitive_wrapper {
             #[inline]
             fn wrapping_add_signed(self, rhs: isize) -> Self {
                 self.assert_valid();
-                let offset = (rhs as $inner) & Self::MASK;
-                Self((self.0.wrapping_add(offset)) & Self::MASK)
+                let val = i128::from(self.0) + (rhs as i128);
+                let wrapped = val.rem_euclid(1i128 << $bits);
+                Self((wrapped as $inner) & Self::MASK)
             }
 
             #[inline]
