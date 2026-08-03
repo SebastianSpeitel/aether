@@ -1,7 +1,7 @@
 #![allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 
 use crate::bitring::{BitRing, RingIter};
-pub use crate::primitive::{Primitive, U2, U6, U8, U10, U12, U16};
+pub use crate::primitive::{Primitive, U2, U6, U8, U10, U12, U16, U18, U20, U24, U30};
 
 /// Trait defining an encoding scheme for delta-compressed time-series data.
 pub trait Encoding {
