@@ -81,6 +81,32 @@
 | Linear Ramp + Noise | `DiffEncoding<U32, U8> [Denoise=128]` | 10000 | 320000 bits | 399840 bits | 39.98 BPS | **0.80x** |
 | Linear Ramp + Noise | `DiffEncoding<U63, U12>` | 10000 | 630000 bits | 749685 bits | 74.97 BPS | **0.84x** |
 | Linear Ramp + Noise | `DiffEncoding<U63, U12> [Denoise=512]` | 10000 | 630000 bits | 749685 bits | 74.97 BPS | **0.84x** |
+| Sawtooth | `DiffEncoding<u8, U1>` | 10000 | 80000 bits | 90000 bits | 9.00 BPS | **0.89x** |
+| Sawtooth | `DiffEncoding<u8, U2>` | 10000 | 80000 bits | 100000 bits | 10.00 BPS | **0.80x** |
+| Sawtooth | `DiffEncoding<u8, U2> [Denoise=2]` | 10000 | 80000 bits | 100000 bits | 10.00 BPS | **0.80x** |
+| Sawtooth | `DiffEncoding<u8, U4>` | 10000 | 80000 bits | 42504 bits | 4.25 BPS | **1.88x** |
+| Sawtooth | `DiffEncoding<u8, U4> [Denoise=2]` | 10000 | 80000 bits | 42504 bits | 4.25 BPS | **1.88x** |
+| Sawtooth | `DiffEncoding<u16, U2>` | 10000 | 160000 bits | 180000 bits | 18.00 BPS | **0.89x** |
+| Sawtooth | `DiffEncoding<u16, U2> [Denoise=4]` | 10000 | 160000 bits | 180000 bits | 18.00 BPS | **0.89x** |
+| Sawtooth | `DiffEncoding<u16, U4>` | 10000 | 160000 bits | 200000 bits | 20.00 BPS | **0.80x** |
+| Sawtooth | `DiffEncoding<u16, U4> [Denoise=4]` | 10000 | 160000 bits | 200000 bits | 20.00 BPS | **0.80x** |
+| Sawtooth | `DiffEncoding<U32, U8>` | 10000 | 320000 bits | 400000 bits | 40.00 BPS | **0.80x** |
+| Sawtooth | `DiffEncoding<U32, U8> [Denoise=128]` | 10000 | 320000 bits | 400000 bits | 40.00 BPS | **0.80x** |
+| Sawtooth | `DiffEncoding<U63, U12>` | 10000 | 630000 bits | 750000 bits | 75.00 BPS | **0.84x** |
+| Sawtooth | `DiffEncoding<U63, U12> [Denoise=512]` | 10000 | 630000 bits | 750000 bits | 75.00 BPS | **0.84x** |
+| Sawtooth + Noise | `DiffEncoding<u8, U1>` | 10000 | 80000 bits | 90000 bits | 9.00 BPS | **0.89x** |
+| Sawtooth + Noise | `DiffEncoding<u8, U2>` | 10000 | 80000 bits | 100000 bits | 10.00 BPS | **0.80x** |
+| Sawtooth + Noise | `DiffEncoding<u8, U2> [Denoise=2]` | 10000 | 80000 bits | 84504 bits | 8.45 BPS | **0.95x** |
+| Sawtooth + Noise | `DiffEncoding<u8, U4>` | 10000 | 80000 bits | 42504 bits | 4.25 BPS | **1.88x** |
+| Sawtooth + Noise | `DiffEncoding<u8, U4> [Denoise=2]` | 10000 | 80000 bits | 42504 bits | 4.25 BPS | **1.88x** |
+| Sawtooth + Noise | `DiffEncoding<u16, U2>` | 10000 | 160000 bits | 180000 bits | 18.00 BPS | **0.89x** |
+| Sawtooth + Noise | `DiffEncoding<u16, U2> [Denoise=4]` | 10000 | 160000 bits | 180000 bits | 18.00 BPS | **0.89x** |
+| Sawtooth + Noise | `DiffEncoding<u16, U4>` | 10000 | 160000 bits | 200000 bits | 20.00 BPS | **0.80x** |
+| Sawtooth + Noise | `DiffEncoding<u16, U4> [Denoise=4]` | 10000 | 160000 bits | 200000 bits | 20.00 BPS | **0.80x** |
+| Sawtooth + Noise | `DiffEncoding<U32, U8>` | 10000 | 320000 bits | 400000 bits | 40.00 BPS | **0.80x** |
+| Sawtooth + Noise | `DiffEncoding<U32, U8> [Denoise=128]` | 10000 | 320000 bits | 400000 bits | 40.00 BPS | **0.80x** |
+| Sawtooth + Noise | `DiffEncoding<U63, U12>` | 10000 | 630000 bits | 750000 bits | 75.00 BPS | **0.84x** |
+| Sawtooth + Noise | `DiffEncoding<U63, U12> [Denoise=512]` | 10000 | 630000 bits | 750000 bits | 75.00 BPS | **0.84x** |
 | Sine Wave | `DiffEncoding<u8, U1>` | 10000 | 80000 bits | 61424 bits | 6.14 BPS | **1.30x** |
 | Sine Wave | `DiffEncoding<u8, U2>` | 10000 | 80000 bits | 22600 bits | 2.26 BPS | **3.54x** |
 | Sine Wave | `DiffEncoding<u8, U2> [Denoise=2]` | 10000 | 80000 bits | 22504 bits | 2.25 BPS | **3.55x** |
@@ -213,6 +239,28 @@
 | Linear Ramp + Noise | `GradientEncoding<U10, U4, U6> [Denoise=4]` | 10000 | 100000 bits | 66384 bits | 6.64 BPS | **1.51x** |
 | Linear Ramp + Noise | `GradientEncoding<U63, U24, U32>` | 10000 | 630000 bits | 141372 bits | 14.14 BPS | **4.46x** |
 | Linear Ramp + Noise | `GradientEncoding<U63, U24, U32> [Denoise=2048]` | 10000 | 630000 bits | 141372 bits | 14.14 BPS | **4.46x** |
+| Sawtooth | `GradientEncoding<u8, U2, u8>` | 10000 | 80000 bits | 25024 bits | 2.50 BPS | **3.20x** |
+| Sawtooth | `GradientEncoding<u8, U2, u8> [Denoise=2]` | 10000 | 80000 bits | 25024 bits | 2.50 BPS | **3.20x** |
+| Sawtooth | `GradientEncoding<u8, U4, u8>` | 10000 | 80000 bits | 45008 bits | 4.50 BPS | **1.78x** |
+| Sawtooth | `GradientEncoding<u8, U4, u8> [Denoise=2]` | 10000 | 80000 bits | 45008 bits | 4.50 BPS | **1.78x** |
+| Sawtooth | `GradientEncoding<U10, U2, U6>` | 10000 | 100000 bits | 25024 bits | 2.50 BPS | **4.00x** |
+| Sawtooth | `GradientEncoding<U10, U2, U6> [Denoise=1]` | 10000 | 100000 bits | 25024 bits | 2.50 BPS | **4.00x** |
+| Sawtooth | `GradientEncoding<U10, U2, U6> [Denoise=2]` | 10000 | 100000 bits | 25024 bits | 2.50 BPS | **4.00x** |
+| Sawtooth | `GradientEncoding<U10, U2, U6> [Denoise=4]` | 10000 | 100000 bits | 25024 bits | 2.50 BPS | **4.00x** |
+| Sawtooth | `GradientEncoding<U10, U2, U6> [Denoise=8]` | 10000 | 100000 bits | 25024 bits | 2.50 BPS | **4.00x** |
+| Sawtooth | `GradientEncoding<U10, U2, U6> [Denoise=16]` | 10000 | 100000 bits | 25024 bits | 2.50 BPS | **4.00x** |
+| Sawtooth | `GradientEncoding<U10, U4, U6>` | 10000 | 100000 bits | 45024 bits | 4.50 BPS | **2.22x** |
+| Sawtooth | `GradientEncoding<U10, U4, U6> [Denoise=4]` | 10000 | 100000 bits | 45024 bits | 4.50 BPS | **2.22x** |
+| Sawtooth | `GradientEncoding<U63, U24, U32>` | 10000 | 630000 bits | 141491 bits | 14.15 BPS | **4.45x** |
+| Sawtooth | `GradientEncoding<U63, U24, U32> [Denoise=2048]` | 10000 | 630000 bits | 141491 bits | 14.15 BPS | **4.45x** |
+| Sawtooth + Noise | `GradientEncoding<u8, U2, u8> [Denoise=2]` | 10000 | 80000 bits | 29648 bits | 2.96 BPS | **2.70x** |
+| Sawtooth + Noise | `GradientEncoding<u8, U4, u8>` | 10000 | 80000 bits | 45008 bits | 4.50 BPS | **1.78x** |
+| Sawtooth + Noise | `GradientEncoding<u8, U4, u8> [Denoise=2]` | 10000 | 80000 bits | 45008 bits | 4.50 BPS | **1.78x** |
+| Sawtooth + Noise | `GradientEncoding<U10, U2, U6> [Denoise=8]` | 10000 | 100000 bits | 107360 bits | 10.74 BPS | **0.93x** |
+| Sawtooth + Noise | `GradientEncoding<U10, U2, U6> [Denoise=16]` | 10000 | 100000 bits | 25024 bits | 2.50 BPS | **4.00x** |
+| Sawtooth + Noise | `GradientEncoding<U10, U4, U6> [Denoise=4]` | 10000 | 100000 bits | 67184 bits | 6.72 BPS | **1.49x** |
+| Sawtooth + Noise | `GradientEncoding<U63, U24, U32>` | 10000 | 630000 bits | 141491 bits | 14.15 BPS | **4.45x** |
+| Sawtooth + Noise | `GradientEncoding<U63, U24, U32> [Denoise=2048]` | 10000 | 630000 bits | 141491 bits | 14.15 BPS | **4.45x** |
 | Sine Wave | `GradientEncoding<u8, U2, u8>` | 10000 | 80000 bits | 25024 bits | 2.50 BPS | **3.20x** |
 | Sine Wave | `GradientEncoding<u8, U2, u8> [Denoise=2]` | 10000 | 80000 bits | 25024 bits | 2.50 BPS | **3.20x** |
 | Sine Wave | `GradientEncoding<u8, U4, u8>` | 10000 | 80000 bits | 45024 bits | 4.50 BPS | **1.78x** |

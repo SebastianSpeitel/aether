@@ -29,6 +29,7 @@ fn generate_series(
                     let step = ((i % 7) as f64 - 3.0) * (max_val * 0.001);
                     (max_val * 0.5 + step * (i as f64 % 50.0)).clamp(0.0, max_val)
                 }
+                "Sawtooth" => ((i % 50) as f64 / 50f64) * max_val,
                 _ => max_val * 0.5,
             };
             add_noise(base, noise_amp, i).clamp(0.0, max_val)
@@ -183,7 +184,13 @@ fn bench_speed_and_compression(c: &mut Criterion) {
     let mut diff_rows: Vec<BenchRow> = Vec::new();
     let mut grad_rows: Vec<BenchRow> = Vec::new();
 
-    let dataset_names = ["Constant", "Linear Ramp", "Sine Wave", "Random Walk"];
+    let dataset_names = [
+        "Constant",
+        "Linear Ramp",
+        "Sawtooth",
+        "Sine Wave",
+        "Random Walk",
+    ];
 
     for ds_name in dataset_names {
         for with_noise in [false, true] {
