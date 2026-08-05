@@ -9,10 +9,10 @@ use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
 use aether_compat::Compat;
+use aether_core::Task;
 use aether_core::clock::Clock;
 use aether_platform::clock::FrozenClock;
 use aether_task::context::TaskContext;
-use aether_core::Task;
 
 /// Example embedded future that doesn't require allocations
 async fn embedded_future() -> u32 {
