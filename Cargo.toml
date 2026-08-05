@@ -3,7 +3,7 @@ members = [
     "crates/core",
     "crates/task",
     "crates/platform",
-    "crates/compat",
+    # "crates/compat",
     "crates/time",
     "crates/delta_encoding",
 ]

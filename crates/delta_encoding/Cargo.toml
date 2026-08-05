@@ -6,13 +6,13 @@ edition.workspace = true
 [features]
 default = []
 std = []
+test = ["dep:proptest", "dep:criterion"]
 
 [dependencies]
-
-[dev-dependencies]
-criterion = "0.5"
-proptest = "1.11.0"
+criterion = { version = "0.8", optional = true }
+proptest = { version = "1.11", optional = true }
 
 [[bench]]
 name = "encoding_bench"
 harness = false
+required-features = ["test", "std"]

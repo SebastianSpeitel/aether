@@ -12,4 +12,6 @@ aether-core = { path = "../core", default-features = false }
 aether-platform = { path = "../platform", default-features = false }
 
 [target.'cfg(target_arch = "avr")'.dependencies]
-arduino-hal = { git = "https://github.com/Rahix/avr-hal", features = ["arduino-nano"] }
+arduino-hal = { git = "https://github.com/SebastianSpeitel/avr-hal", features = [
+    "arduino-nano"
+] }
