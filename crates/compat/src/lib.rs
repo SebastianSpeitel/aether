@@ -100,11 +100,8 @@ pub struct WakerKernel<'a, K> {
 }
 
 impl<'a, K: Kernel> Kernel for WakerKernel<'a, K> {
-    fn yield_for<C: aether_core::time::Clock, T>(
-        &self,
-        dur: aether_core::time::Duration<C>,
-    ) -> core::task::Poll<T> {
-        let res = self.kernel.yield_for(dur);
+    fn r#yield<T>(&self) -> core::task::Poll<T> {
+        let res = self.kernel.r#yield();
         self.waker.wake_by_ref();
         res
     }
