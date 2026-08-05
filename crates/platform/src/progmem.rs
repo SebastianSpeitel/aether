@@ -249,10 +249,12 @@ macro_rules! pstr {
 #[macro_export]
 macro_rules! pwrite {
     ($writer:expr, $str_bytes:expr) => {{
-        #[unsafe(link_section = ".progmem.data")]
-        static STR: [u8; $str_bytes.len()] = *$str_bytes;
-        let _ = ufmt::uwrite!($writer, "{}", unsafe {
-            $crate::progmem::from_raw_parts(STR.as_ptr(), STR.len())
-        });
+        {
+            #[unsafe(link_section = ".progmem.data")]
+            static STR: [u8; $str_bytes.len()] = *$str_bytes;
+            ufmt::uwrite!($writer, "{}", unsafe {
+                $crate::progmem::from_raw_parts(STR.as_ptr(), STR.len())
+            })
+        }
     }};
 }
