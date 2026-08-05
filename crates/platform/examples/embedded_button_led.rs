@@ -1,10 +1,10 @@
 use core::sync::atomic::{AtomicBool, Ordering};
 use core::task::Poll;
 
-use aether_core::driver::{Driver, HasDriver, ReadDriver, WriteDriver};
+use aether_core::capability::HasDriver;
+use aether_core::driver::{Driver, ReadDriver, WriteDriver};
 use aether_core::kernel::Kernel;
 use aether_core::task::Task;
-use aether_core::time::Duration;
 use aether_platform::driver::PinDriver;
 use embedded_hal::digital::{ErrorType, InputPin, OutputPin};
 
@@ -129,11 +129,7 @@ pub struct EmbeddedKernel {
     pub btn_driver: PinDriver<MockButtonPin>,
 }
 
-impl Kernel for EmbeddedKernel {
-    fn yield_for<C: aether_core::time::Clock, T>(&self, _dur: Duration<C>) -> Poll<T> {
-        Poll::Pending
-    }
-}
+impl Kernel for EmbeddedKernel {}
 
 impl HasDriver<PinDriver<MockLedPin>> for EmbeddedKernel {
     type DriverRef<'b>

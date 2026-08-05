@@ -7,4 +7,6 @@ edition.workspace = true
 aether-core = { path = "../core", default-features = false }
 
 [features]
+default = ["extensions"]
 std = []
+extensions = []

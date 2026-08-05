@@ -4,11 +4,11 @@ use core::mem::MaybeUninit;
 use core::ptr::NonNull;
 use core::task::Poll;
 
-use aether_core::allocator::{Allocator, HasAllocator};
+use aether_core::allocator::Allocator;
+use aether_core::capability::HasAllocator;
 use aether_core::guard::{Guard, GuardMut};
 use aether_core::kernel::Kernel;
 use aether_core::task::Task;
-use aether_core::time::Duration;
 
 // -----------------------------------------------------------------------------
 // 1. Sub-Allocator: A lightweight arena carved out for a single task execution
@@ -149,11 +149,7 @@ impl Default for RealTimeKernel {
     }
 }
 
-impl Kernel for RealTimeKernel {
-    fn yield_for<C: aether_core::time::Clock, T>(&self, _dur: Duration<C>) -> Poll<T> {
-        Poll::Pending
-    }
-}
+impl Kernel for RealTimeKernel {}
 
 impl HasAllocator for RealTimeKernel {
     type Alloc<'a>

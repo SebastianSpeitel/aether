@@ -1,19 +1,22 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-pub mod combinators;
 pub mod context;
 pub mod executor;
+#[cfg(feature = "extensions")]
+pub mod extensions;
 pub mod sleep;
-pub mod task;
+#[cfg(feature = "extensions")]
+mod task;
 
-pub use combinators::{Map, RepeatWith, ResettableTimeout, Timeout};
 pub use context::TaskContext;
 pub use executor::Executor;
 pub use sleep::{Sleep, sleep_async};
-pub use task::{Task, TaskExt};
+#[cfg(feature = "extensions")]
+pub use task::TaskExt;
 
 pub mod prelude {
     pub use crate::executor::Executor;
     pub use crate::sleep::{Sleep, sleep_async};
-    pub use crate::task::{Task, TaskExt};
+    #[cfg(feature = "extensions")]
+    pub use crate::task::TaskExt;
 }

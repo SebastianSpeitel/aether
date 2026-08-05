@@ -1,16 +1,20 @@
 use core::cell::Cell;
+use core::task::Poll;
 
 use aether_core::Kernel;
-use aether_core::time::{Clock, Duration, Instant};
+use aether_core::capability::HasClock;
+use aether_core::clock::{Clock, Duration, Instant};
 
 pub struct TaskContext<C: Clock> {
+    pub clock: C,
     pub earliest_wake: Cell<Instant<C>>,
 }
 
 impl<C: Clock> TaskContext<C> {
     #[inline]
-    pub const fn new(earliest_wake: Instant<C>) -> Self {
+    pub const fn new(clock: C, earliest_wake: Instant<C>) -> Self {
         Self {
+            clock,
             earliest_wake: Cell::new(earliest_wake),
         }
     }
@@ -18,18 +22,32 @@ impl<C: Clock> TaskContext<C> {
 
 impl<C: Clock> Kernel for TaskContext<C> {
     #[inline]
-    #[allow(clippy::cast_possible_truncation)]
-    fn yield_for<CLK: Clock, T>(&self, dur: Duration<CLK>) -> core::task::Poll<T> {
-        let dur_ms = dur.as_millis() as u64;
-        self.earliest_wake.set(core::cmp::min(
-            self.earliest_wake.get(),
-            Instant::<C>::now() + Duration::<C>::from_millis(dur_ms),
-        ));
-        core::task::Poll::Pending
+    fn r#yield<T>(&self) -> Poll<T> {
+        self.earliest_wake.set(self.clock.now());
+        Poll::Pending
     }
+}
+
+impl<C: Clock> HasClock<C> for TaskContext<C> {
+    type Clock<'a>
+        = &'a C
+    where
+        Self: 'a;
+
     #[inline]
-    fn r#yield<T>(&self) -> core::task::Poll<T> {
-        self.earliest_wake.set(Instant::<C>::now());
-        core::task::Poll::Pending
+    fn get_clock<'a>(&'a self) -> Self::Clock<'a> {
+        &self.clock
+    }
+
+    #[inline]
+    fn yield_for<T>(&self, dur: Duration<C>) -> Poll<T> {
+        let now = self.clock.now();
+        let target = C::add_duration(now, dur);
+        let current = self.earliest_wake.get();
+        let diff = C::offset_from(target, current);
+        if diff.is_negative() {
+            self.earliest_wake.set(target);
+        }
+        Poll::Pending
     }
 }

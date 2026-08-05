@@ -9,9 +9,10 @@ use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
 use aether_compat::Compat;
-use aether_core::time::FrozenClock;
+use aether_core::clock::Clock;
+use aether_platform::clock::FrozenClock;
 use aether_task::context::TaskContext;
-use aether_task::task::Task;
+use aether_core::Task;
 
 /// Example embedded future that doesn't require allocations
 async fn embedded_future() -> u32 {
@@ -46,7 +47,8 @@ fn main() {
     {
         let future = Box::pin(embedded_future());
         let mut task = Compat::new(future);
-        let kernel = TaskContext::new(aether_core::time::Instant::<FrozenClock>::now());
+        let clock = FrozenClock;
+        let kernel = TaskContext::new(clock, clock.now());
 
         // Create a no-op waker for the future context
         let mut cx = Context::from_waker(Waker::noop());
@@ -68,7 +70,8 @@ fn main() {
     println!("Example 2: Task → Future (no allocations)");
     {
         let task = EmbeddedTask { counter: 0 };
-        let kernel = TaskContext::new(aether_core::time::Instant::<FrozenClock>::now());
+        let clock = FrozenClock;
+        let kernel = TaskContext::new(clock, clock.now());
         let mut future = Compat::with_kernel(task, kernel);
 
         let mut cx = Context::from_waker(Waker::noop());

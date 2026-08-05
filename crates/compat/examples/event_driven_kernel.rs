@@ -10,9 +10,10 @@ use core::pin::Pin;
 use core::task::{Context, Poll};
 
 use aether_compat::Compat;
-use aether_core::time::FrozenClock;
+use aether_core::Task;
+use aether_core::clock::Clock;
+use aether_platform::clock::FrozenClock;
 use aether_task::context::TaskContext;
-use aether_task::task::Task;
 
 /// An event-driven kernel that only polls when woken
 struct EventDrivenKernel {
@@ -45,11 +46,7 @@ impl EventDrivenKernel {
 }
 
 impl aether_core::Kernel for EventDrivenKernel {
-    fn yield_for<C: aether_core::time::Clock, T>(
-        &self,
-        _dur: aether_core::time::Duration<C>,
-    ) -> Poll<T> {
-        // When the waker fires, mark that we have an event
+    fn r#yield<T>(&self) -> Poll<T> {
         self.wake_count.set(self.wake_count.get() + 1);
         self.has_pending_event.set(true);
         Poll::Pending
@@ -135,7 +132,8 @@ fn main() {
 
     let eager_polls = {
         let mut task = CountingTask { poll_count: 0 };
-        let kernel = TaskContext::new(aether_core::time::Instant::<FrozenClock>::now());
+        let clock = FrozenClock;
+        let kernel = TaskContext::new(clock, clock.now());
 
         // Eager polling loop (no waker involved)
         loop {

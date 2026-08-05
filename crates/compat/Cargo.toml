@@ -5,4 +5,7 @@ edition.workspace = true
 
 [dependencies]
 aether-core = { path = "../core" }
+
+[dev-dependencies]
+aether-platform = { path = "../platform" }
 aether-task = { path = "../task" }

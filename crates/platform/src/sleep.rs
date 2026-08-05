@@ -55,9 +55,13 @@ mod sys {
     }
 }
 
-#[cfg(all(not(feature = "std"), not(target_arch = "avr")))]
+#[cfg(all(
+    not(feature = "std"),
+    not(feature = "timer-clock"),
+    not(target_arch = "avr")
+))]
 mod sys {
-    use aether_core::clock::{Clock, Duration};
-
-    pub fn sleep<C: Clock>(_dur: Duration<C>, _clock: &C) {}
+    pub fn sleep<C: aether_core::clock::Clock>(_dur: aether_core::clock::Duration<C>, _clock: &C) {
+        unimplemented!()
+    }
 }

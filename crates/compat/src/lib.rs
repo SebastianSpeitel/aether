@@ -6,8 +6,7 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
-use aether_core::Kernel;
-use aether_task::Task;
+use aether_core::{Kernel, Task};
 
 /// Type-indexed vtables for kernel wakers via monomorphization.
 struct VTable<K: Kernel + Sized>(core::marker::PhantomData<K>);

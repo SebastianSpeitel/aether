@@ -6,6 +6,7 @@ pub mod clock;
 pub mod driver;
 pub mod lock;
 pub mod progmem;
+pub mod sleep;
 
 #[cfg(feature = "alloc")]
 pub use allocator::Global;

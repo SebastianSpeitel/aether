@@ -7,9 +7,10 @@ use std::sync::Arc;
 use std::task::{Context, Poll, Wake, Waker};
 
 use aether_compat::Compat;
-use aether_core::time::{FrozenClock, Instant};
+use aether_core::Task;
+use aether_core::clock::Clock;
+use aether_platform::clock::FrozenClock;
 use aether_task::context::TaskContext;
-use aether_task::task::Task;
 
 // Example 1: Wrap a standard async future as a Task
 async fn async_function() -> i32 {
@@ -42,7 +43,8 @@ fn main() {
     println!("Example 1: Wrapping async future as Task");
     let future = Box::pin(async_function());
     let mut future_task = Compat::new(future);
-    let kernel = TaskContext::new(Instant::<FrozenClock>::now());
+    let clock = FrozenClock;
+    let kernel = TaskContext::new(clock, clock.now());
 
     // Poll the wrapped future as a task
     match future_task.poll(&kernel) {
@@ -53,7 +55,7 @@ fn main() {
     // Example 2: Use a Task as a Future
     println!("Example 2: Wrapping Task as Future");
     let task = SimpleTask { count: 0 };
-    let kernel = TaskContext::new(Instant::<FrozenClock>::now());
+    let kernel = TaskContext::new(clock, clock.now());
     let mut task_future = Compat::with_kernel(task, kernel);
 
     // Poll the wrapped task as a future

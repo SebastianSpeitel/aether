@@ -21,13 +21,12 @@ impl<A: GlobalAlloc> Global<A> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AllocError;
 
 impl core::fmt::Display for AllocError {
-    #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        f.write_str("Allocation failed")
+        f.write_str("Global allocation failed")
     }
 }
 
