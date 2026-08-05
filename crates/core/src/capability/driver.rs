@@ -1,8 +1,5 @@
 use core::error::Error;
 
-#[cfg(feature = "std")]
-extern crate std;
-
 /// The fundamental driver interface implemented by hardware peripherals,
 /// character/block devices, filesystems, and network drivers.
 pub trait Driver {
@@ -103,49 +100,9 @@ pub trait IoctlDriver: Driver {
 pub trait HasDriver<D: Driver + ?Sized> {
     type DriverRef<'a>: core::ops::Deref<Target = D> + 'a
     where
-        Self: 'a;
+        Self: 'a,
+        D: 'a;
 
     /// Acquires a reference to the `Driver` instance `D`.
     fn get_driver<'a>(&'a self) -> Self::DriverRef<'a>;
-}
-
-/// Adapter converting a `ReadDriver` handle reference into a `std::io::Read` implementor.
-#[cfg(feature = "std")]
-pub struct StdReadAdapter<'a, 'h, D: ReadDriver + ?Sized> {
-    pub driver: &'a D,
-    pub handle: &'h D::Handle,
-}
-
-#[cfg(feature = "std")]
-impl<'a, 'h, D: ReadDriver + ?Sized> std::io::Read for StdReadAdapter<'a, 'h, D> {
-    #[inline]
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        self.driver
-            .read(self.handle, buf)
-            .map_err(|e| std::io::Error::other(std::format!("{e:?}")))
-    }
-}
-
-/// Adapter converting a `WriteDriver` handle reference into a `std::io::Write` implementor.
-#[cfg(feature = "std")]
-pub struct StdWriteAdapter<'a, 'h, D: WriteDriver + ?Sized> {
-    pub driver: &'a D,
-    pub handle: &'h D::Handle,
-}
-
-#[cfg(feature = "std")]
-impl<'a, 'h, D: WriteDriver + ?Sized> std::io::Write for StdWriteAdapter<'a, 'h, D> {
-    #[inline]
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.driver
-            .write(self.handle, buf)
-            .map_err(|e| std::io::Error::other(std::format!("{e:?}")))
-    }
-
-    #[inline]
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.driver
-            .flush(self.handle)
-            .map_err(|e| std::io::Error::other(std::format!("{e:?}")))
-    }
 }

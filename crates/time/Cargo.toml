@@ -4,8 +4,12 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-std = []
-timer-clock = []
+std = ["aether-core/std", "aether-platform/std"]
+timer-clock = ["aether-platform/timer-clock"]
 
 [dependencies]
+aether-core = { path = "../core", default-features = false }
+aether-platform = { path = "../platform", default-features = false }
 
+[target.'cfg(target_arch = "avr")'.dependencies]
+arduino-hal = { git = "https://github.com/Rahix/avr-hal", features = ["arduino-nano"] }

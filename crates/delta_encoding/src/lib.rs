@@ -1,3 +1,5 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+
 pub mod bitring;
 pub mod encoded_ring;
 pub mod encoding;

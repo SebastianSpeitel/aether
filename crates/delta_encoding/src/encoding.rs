@@ -10,6 +10,9 @@ pub trait Encoding {
     /// Compression state tracking type.
     type State: Default + Copy;
 
+    /// Initial state value.
+    const DEFAULT_STATE: Self::State;
+
     /// Maximum bit count required for an encoded sample.
     const MAX_BITS: usize;
     /// Bit value representing a keyframe header flag.
@@ -50,6 +53,7 @@ impl<T: Primitive, F: Primitive> Encoding for DiffEncoding<T, F> {
     type Value = T;
     type State = T;
 
+    const DEFAULT_STATE: Self::State = T::ZERO;
     const MAX_BITS: usize = (F::BITS as usize) + (T::BITS as usize);
     const KEY_FLAG: usize = (1usize << F::BITS) - 1;
     const MAX_DELTA: isize = (1isize << (F::BITS - 1)) - 1;
@@ -132,6 +136,13 @@ pub struct GradientState<T> {
     pub velocity: isize,
 }
 
+impl<T: Primitive> GradientState<T> {
+    pub const ZERO: Self = Self {
+        value: T::ZERO,
+        velocity: 0,
+    };
+}
+
 /// Generic gradient encoding scheme parameterized over value type `T`, flag width `F`, and velocity width `V`.
 pub struct GradientEncoding<T, F = U2, V = u8>(core::marker::PhantomData<(T, F, V)>);
 
@@ -139,6 +150,7 @@ impl<T: Primitive, F: Primitive, V: Primitive> Encoding for GradientEncoding<T, 
     type Value = T;
     type State = GradientState<T>;
 
+    const DEFAULT_STATE: Self::State = GradientState::<T>::ZERO;
     const MAX_BITS: usize = (F::BITS as usize) + (T::BITS as usize) + (V::BITS as usize);
     const KEY_FLAG: usize = (1usize << F::BITS) - 1;
     const MAX_DELTA: isize = (1isize << (F::BITS - 1)) - 1;

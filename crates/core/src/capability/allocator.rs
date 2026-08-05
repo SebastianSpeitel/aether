@@ -1,20 +1,8 @@
 use core::error::Error;
 use core::mem::MaybeUninit;
 
-use crate::guard::{Guard, GuardMut};
-use crate::token::Token;
-
-/// Error type for allocation failures when no specific error type is available.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct AllocError;
-
-impl core::fmt::Display for AllocError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str("Allocation failed")
-    }
-}
-
-impl Error for AllocError {}
+use super::guard::{Guard, GuardMut};
+use super::token::Token;
 
 /// Abstract memory allocator managing allocation, access, and deallocation.
 pub trait Allocator {

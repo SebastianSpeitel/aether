@@ -4,6 +4,8 @@
 pub trait Primitive: Copy + Default + PartialEq {
     /// Number of bits required to store this primitive.
     const BITS: u8;
+    /// Zero constant for this primitive.
+    const ZERO: Self;
     /// Unit increment constant for this primitive.
     const ONE: Self;
 
@@ -29,6 +31,7 @@ pub type U1 = bool;
 
 impl Primitive for bool {
     const BITS: u8 = 1;
+    const ZERO: Self = false;
     const ONE: Self = true;
 
     #[inline]
@@ -64,6 +67,7 @@ impl Primitive for bool {
 
 impl Primitive for u8 {
     const BITS: Self = 8;
+    const ZERO: Self = 0;
     const ONE: Self = 1;
 
     #[inline]
@@ -99,6 +103,7 @@ impl Primitive for u8 {
 
 impl Primitive for u16 {
     const BITS: u8 = 16;
+    const ZERO: Self = 0;
     const ONE: Self = 1;
 
     #[inline]
@@ -151,6 +156,7 @@ macro_rules! impl_primitive_wrapper {
 
         impl Primitive for $type {
             const BITS: u8 = $bits;
+            const ZERO: Self = Self(0);
             const ONE: Self = Self(1);
 
             #[inline]

@@ -1,5 +1,5 @@
 use crate::lock::{Lock, Token};
-use aether_time::{Clock, Duration, Instant, SignedDuration};
+use aether_core::clock::{Clock, Duration, Instant, SignedDuration};
 
 static CACHED_NOW: Lock<u32, 1> = Lock::new(0);
 
@@ -46,8 +46,8 @@ impl Clock for SystemClock {
     const DURATION_ZERO: Self::DurationRepr = 0;
 
     #[inline]
-    fn now() -> Self::InstantRepr {
-        CACHED_NOW.read()
+    fn now(&self) -> Instant<Self> {
+        Instant::from_inner(CACHED_NOW.read())
     }
 
     #[inline]

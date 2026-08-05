@@ -82,76 +82,91 @@ pub(crate) unsafe fn read_byte(addr: *const u8) -> u8 {
 }
 
 // -----------------------------------------------------------------------------
-// Target-Dependent Inner Storage Representation
+// Target-Dependent System Representation
 // -----------------------------------------------------------------------------
 
 #[cfg(target_arch = "avr")]
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-struct PStrInner {
-    ptr: ProgPtr<u8>,
-    len: usize,
-}
+mod sys {
+    use super::{PStr, ProgPtr};
 
-#[cfg(target_arch = "avr")]
-impl PStrInner {
-    #[inline(always)]
-    const fn from_ptr(ptr: *const u8, len: usize) -> Self {
-        Self {
-            ptr: ProgPtr::new(ptr),
-            len,
+    #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+    pub(super) struct PStrInner {
+        ptr: ProgPtr<u8>,
+        len: usize,
+    }
+
+    unsafe impl Send for PStrInner {}
+    unsafe impl Sync for PStrInner {}
+
+    impl PStrInner {
+        #[inline(always)]
+        pub const fn len(&self) -> usize {
+            self.len
         }
     }
 
     #[inline(always)]
-    const fn from_static_str(s: &'static str) -> Self {
-        Self {
-            ptr: ProgPtr::new(s.as_ptr()),
-            len: s.len(),
+    pub const unsafe fn from_raw_parts(ptr: *const u8, len: usize) -> PStr {
+        PStr {
+            inner: PStrInner {
+                ptr: ProgPtr::new(ptr),
+                len,
+            },
         }
     }
 
-    #[inline(always)]
-    const fn len(&self) -> usize {
-        self.len
+    impl core::fmt::Display for PStrInner {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            for i in 0..self.len {
+                let b = self.ptr.add(i).read_byte();
+                f.write_str(core::str::from_utf8(core::slice::from_ref(&b)).unwrap_or("?"))?;
+            }
+            Ok(())
+        }
     }
 
-    #[inline(always)]
-    fn read_byte(&self, index: usize) -> u8 {
-        self.ptr.add(index).read()
+    #[cfg(feature = "ufmt")]
+    impl ufmt::uDisplay for PStrInner {
+        fn fmt<W: ufmt::uWrite + ?Sized>(
+            &self,
+            f: &mut ufmt::Formatter<'_, W>,
+        ) -> Result<(), W::Error> {
+            for i in 0..self.len {
+                let b = self.ptr.add(i).read_byte();
+                f.write_char(b as char)?;
+            }
+            Ok(())
+        }
+    }
+
+    impl From<&'static str> for PStrInner {
+        #[inline(always)]
+        fn from(s: &'static str) -> Self {
+            Self {
+                ptr: ProgPtr::new(s.as_ptr()),
+                len: s.len(),
+            }
+        }
     }
 }
 
 #[cfg(not(target_arch = "avr"))]
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-struct PStrInner(&'static str);
+mod sys {
+    use super::PStr;
 
-#[cfg(not(target_arch = "avr"))]
-impl PStrInner {
+    pub(super) type PStrInner = &'static str;
+
     #[inline(always)]
-    const fn from_ptr(ptr: *const u8, len: usize) -> Self {
+    #[must_use]
+    pub const unsafe fn from_raw_parts(ptr: *const u8, len: usize) -> PStr {
         let slice = unsafe { core::slice::from_raw_parts(ptr, len) };
-        let s = match core::str::from_utf8(slice) {
-            Ok(valid) => valid,
-            Err(_) => "",
-        };
-        Self(s)
-    }
-
-    #[inline(always)]
-    const fn from_static_str(s: &'static str) -> Self {
-        Self(s)
-    }
-
-    #[inline(always)]
-    const fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    #[inline(always)]
-    fn read_byte(&self, index: usize) -> u8 {
-        self.0.as_bytes()[index]
+        let s = unsafe { core::str::from_utf8_unchecked(slice) };
+        PStr { inner: s }
     }
 }
+
+use sys::PStrInner;
+pub use sys::from_raw_parts;
 
 // -----------------------------------------------------------------------------
 // Concrete `PStr` Wrapper (Unified API Across All Platforms)
@@ -166,25 +181,16 @@ pub struct PStr {
 unsafe impl Send for PStr {}
 unsafe impl Sync for PStr {}
 
+impl From<&'static str> for PStr {
+    #[inline(always)]
+    fn from(s: &'static str) -> Self {
+        Self {
+            inner: PStrInner::from(s),
+        }
+    }
+}
+
 impl PStr {
-    /// Creates a `PStr` from a raw Flash pointer and length.
-    #[must_use]
-    #[inline(always)]
-    pub const fn from_ptr(ptr: *const u8, len: usize) -> Self {
-        Self {
-            inner: PStrInner::from_ptr(ptr, len),
-        }
-    }
-
-    /// Creates a `PStr` from a static string slice.
-    #[must_use]
-    #[inline(always)]
-    pub const fn from_static_str(s: &'static str) -> Self {
-        Self {
-            inner: PStrInner::from_static_str(s),
-        }
-    }
-
     /// Returns the length of the Flash string in bytes.
     #[must_use]
     #[inline(always)]
@@ -198,22 +204,11 @@ impl PStr {
     pub const fn is_empty(&self) -> bool {
         self.len() == 0
     }
-
-    /// Reads a single byte from the Flash string at `index`.
-    #[must_use]
-    #[inline(always)]
-    pub fn read_byte(&self, index: usize) -> u8 {
-        self.inner.read_byte(index)
-    }
 }
 
 impl core::fmt::Display for PStr {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        for i in 0..self.len() {
-            let b = self.read_byte(i);
-            f.write_str(core::str::from_utf8(core::slice::from_ref(&b)).unwrap_or("?"))?;
-        }
-        Ok(())
+        core::fmt::Display::fmt(&self.inner, f)
     }
 }
 
@@ -223,11 +218,14 @@ impl ufmt::uDisplay for PStr {
         &self,
         f: &mut ufmt::Formatter<'_, W>,
     ) -> Result<(), W::Error> {
-        for i in 0..self.len() {
-            let b = self.read_byte(i);
-            f.write_char(b as char)?;
+        #[cfg(target_arch = "avr")]
+        {
+            ufmt::uDisplay::fmt(&self.inner, f)
         }
-        Ok(())
+        #[cfg(not(target_arch = "avr"))]
+        {
+            f.write_str(self.inner)
+        }
     }
 }
 
@@ -242,7 +240,7 @@ macro_rules! pstr {
     ($str_bytes:expr) => {{
         #[unsafe(link_section = ".progmem.data")]
         static STR: [u8; $str_bytes.len()] = *$str_bytes;
-        $crate::progmem::PStr::from_ptr(STR.as_ptr(), STR.len())
+        unsafe { $crate::progmem::from_raw_parts(STR.as_ptr(), STR.len()) }
     }};
 }
 
@@ -253,10 +251,8 @@ macro_rules! pwrite {
     ($writer:expr, $str_bytes:expr) => {{
         #[unsafe(link_section = ".progmem.data")]
         static STR: [u8; $str_bytes.len()] = *$str_bytes;
-        let _ = ufmt::uwrite!(
-            $writer,
-            "{}",
-            $crate::progmem::PStr::from_ptr(STR.as_ptr(), STR.len())
-        );
+        let _ = ufmt::uwrite!($writer, "{}", unsafe {
+            $crate::progmem::from_raw_parts(STR.as_ptr(), STR.len())
+        });
     }};
 }

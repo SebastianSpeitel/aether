@@ -27,7 +27,7 @@ impl<const N: usize, E: Encoding> EncodedRing<N, E> {
     /// Panics if `N * 8 < E::MAX_BITS`, i.e. if the byte buffer is too small
     /// to hold even a single keyframe.
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         assert!(
             N * 8 >= E::MAX_BITS,
             "Buffer must fit at least one keyframe"
@@ -37,7 +37,7 @@ impl<const N: usize, E: Encoding> EncodedRing<N, E> {
             tail: 0,
             item_count: 0,
             samples_since_keyframe: 0,
-            last_state: E::State::default(),
+            last_state: E::DEFAULT_STATE,
         }
     }
 
@@ -188,7 +188,7 @@ impl<const N: usize, E: Encoding> Iterator for EncodedIter<'_, N, E> {
 
 impl<const N: usize, E: Encoding> ExactSizeIterator for EncodedIter<'_, N, E> {}
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 mod tests {
     use super::*;
     use crate::encoding::{DiffEncoding, GradientEncoding};

@@ -5,10 +5,9 @@ edition.workspace = true
 
 [features]
 alloc = []
-std = ["alloc", "aether-time/std"]
+std = ["alloc"]
 
 [dependencies]
-aether-time = { path = "../time", default-features = false }
 
 [dev-dependencies]
 aether-platform = { path = "../platform" }

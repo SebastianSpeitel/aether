@@ -1,28 +1,21 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(target_arch = "avr", feature(asm_experimental_arch, abi_avr_interrupt))]
 
 pub mod allocator;
-#[cfg(feature = "embedded")]
+pub mod clock;
 pub mod driver;
 pub mod lock;
 pub mod progmem;
-pub mod time;
 
 #[cfg(feature = "alloc")]
 pub use allocator::Global;
+#[cfg(not(target_arch = "avr"))]
 pub use allocator::{ArenaAllocator, SlabAllocator};
+#[cfg(feature = "std")]
+pub use clock::StdClock;
+#[cfg(target_arch = "avr")]
+pub use clock::SystemClock;
 #[cfg(feature = "embedded")]
 pub use driver::PinDriver;
 pub use lock::{Guard, Lock, Token};
 pub use progmem::{PStr, ProgPtr};
-pub use time::SystemClock;
-
-pub mod prelude {
-    #[cfg(feature = "alloc")]
-    pub use crate::allocator::Global;
-    pub use crate::allocator::{ArenaAllocator, SlabAllocator};
-    #[cfg(feature = "embedded")]
-    pub use crate::driver::PinDriver;
-    pub use crate::lock::{Lock, Token};
-    pub use crate::progmem::{PStr, ProgPtr};
-    pub use crate::time::SystemClock;
-}
